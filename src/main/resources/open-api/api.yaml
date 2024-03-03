@@ -1,0 +1,342 @@
+openapi: 3.0.3
+info:
+  title: MP-Monitoring API
+  description: |-
+    Monitoring System API for storing and retrieving time-series metrics with metadata.
+  contact:
+    email: udalov216@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+
+tags:
+  - name: metrics
+  - name: project
+servers:
+  - url: localhost:8082
+    description: localhost.
+
+paths:
+  /project/create:
+    post:
+      summary: Create a new project
+      operationId: createProject
+      tags:
+        - project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectDto'
+      responses:
+        '200':
+          description: Successfully created project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDto'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    get:
+      summary: Get project by name
+      operationId: getProject
+      tags:
+        - project
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name of the project.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDto'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /project/{project}/service/create:
+    post:
+      summary: Create a new service
+      operationId: createService
+      tags:
+        - project
+      parameters:
+        - name: project
+          in: path
+          required: true
+          description: The name of the project.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceDto'
+      responses:
+        '200':
+          description: Successfully created service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDto'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    get:
+      summary: Get service by name
+      operationId: getService
+      tags:
+        - project
+      parameters:
+        - name: project
+          in: path
+          required: true
+          description: The name of the project.
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          description: The name of the service.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDto'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /metrics/store/{project}/{service}:
+    post:
+      summary: Store metrics
+      operationId: storeMetrics
+      tags:
+        - metrics
+      parameters:
+        - name: project
+          in: path
+          required: true
+          description: The name of the project.
+          schema:
+            type: string
+        - name: service
+          in: path
+          required: true
+          description: The name of the service.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreMetricsRequest'
+      responses:
+        '200':
+          description: Successfully stored data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreMetricsResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    get:
+      summary: Get metrics by labels
+      operationId: getMetrics
+      tags:
+        - metrics
+      parameters:
+        - name: project
+          in: path
+          required: true
+          description: The name of the project.
+          schema:
+            type: string
+        - name: service
+          in: path
+          required: true
+          description: The name of the service.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMetricsRequest'
+      responses:
+        '200':
+          description: Successfully retrieved data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetricsResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+
+components:
+  schemas:
+
+    StoreMetricsRequest:
+      $ref: '#/components/schemas/MetricDto'
+
+    GetMetricsRequest:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/MetadataDto'
+        from:
+          type: integer
+          format: int64
+          description: The start of the time range to retrieve data from in Unix milliseconds.
+        to:
+          type: integer
+          format: int64
+          description: The end of the time range to retrieve data from in Unix milliseconds.
+      required:
+        - metadata
+
+    GetMetricsResponse:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricDto'
+      required:
+        - metrics
+
+    StoreMetricsResponse:
+      type: object
+      description: Response received after storing metric data points.
+      properties:
+        status:
+          type: string
+          description: Indicates the result of the operation.
+          enum:
+            - successful
+            - error
+        processed:
+          type: integer
+          description: The number of metric data points that were processed.
+
+    ProjectDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the project.
+        description:
+          type: string
+          description: A description of the project.
+      required:
+        - name
+        - description
+
+    ServiceDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the service.
+        description:
+          type: string
+          description: A description of the service.
+      required:
+        - name
+        - description
+
+    MetricDto:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/TimeSeriesDto'
+        metadata:
+          $ref: '#/components/schemas/MetadataDto'
+      required:
+        - name
+        - data
+        - metadata
+
+    MetadataDto:
+      type: object
+      description: Metadata associated with the metric data, represented as a map of label names to values.
+      additionalProperties:
+        type: string
+
+    TimeSeriesDto:
+      type: array
+      items:
+        $ref: '#/components/schemas/TimeSeriesDataPointDto'
+
+    TimeSeriesDataPointDto:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp of the data point in Unix milliseconds.
+        value:
+          type: number
+          description: Numeric value of the data point at the given timestamp.
+      required:
+        - timestamp
+        - value
+
+    ApiErrorResponse:
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        exceptionName:
+          type: string
+          readOnly: true
+        exceptionMessage:
+          type: string
+          readOnly: true
+        stacktrace:
+          type: array
+          items:
+            type: string

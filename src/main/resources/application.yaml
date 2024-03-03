@@ -1,0 +1,18 @@
+server:
+  port: 8082
+
+clickhouse:
+  host: ${CH_HOST}
+  database: ${CH_DATABASE}
+  username: ${CH_USERNAME}
+  password: ${CH_PASSWORD}
+  certificate: ${YA_CERT_PATH}
+
+spring:
+  datasource:
+    url: ${PSQL_URL}
+    password: ${PSQL_PASSWORD}
+    username: ${PSQL_USERNAME}
+
+
+
