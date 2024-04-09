@@ -3,18 +3,39 @@ services:
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_USER: ${PSQL_USERNAME}
-      POSTGRES_PASSWORD: ${PSQL_PASSWORD}
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
     ports:
       - '5432:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
-  mongodb:
-    image: mongo:latest
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
     ports:
-      - '27017:27017'
+      - "8123:8123"
+      - "9000:9000"
     volumes:
-      - mongo-data:/data/db
+      - clickhouse-data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_DB=metrics
+      - CLICKHOUSE_USER=test
+      - CLICKHOUSE_PASSWORD=test
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=test
+      - GF_SECURITY_ADMIN_PASSWORD=test
+    depends_on:
+      - clickhouse
+
+
 volumes:
   postgres-data:
-  mongo-data:
+  clickhouse-data:
+  grafana-data:

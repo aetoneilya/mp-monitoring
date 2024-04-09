@@ -1,13 +1,18 @@
 package com.machrist.mpmonitoring.metric
 
-import com.machrist.mpmonitoring.model.Project
+import com.machrist.mpmonitoring.metric.model.MetricProject
+import com.machrist.mpmonitoring.metric.storage.MetricStorage
+import org.springframework.stereotype.Service
 
-class ProjectService {
-    fun getProjects(): List<Project> {
+@Service
+class ProjectService(
+    val metricStorage: MetricStorage
+) {
+    fun getProjects(): List<MetricProject> {
         return emptyList()
     }
 
-    fun createProject(project: Project) {
-
+    fun createProject(project: MetricProject) {
+        metricStorage.createProject(project.name)
     }
 }

@@ -29,10 +29,15 @@ dependencies {
     implementation("com.clickhouse:clickhouse-http-client:0.6.0")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
     implementation("org.slf4j:slf4j-api:2.0.11")
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb:3.2.3")
+//    implementation("org.springframework.boot:spring-boot-starter-data-mongodb:3.2.3")
     implementation("org.postgresql:postgresql:42.7.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation("org.lz4:lz4-java:1.8.0")
 
-//	implementation("org.mongodb:mongodb-driver-sync:5.0.0")
+    implementation("org.reactivestreams:reactive-streams:1.0.4")
+    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.0")
+
+
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
@@ -71,7 +76,8 @@ configure<OpenApiGeneratorGenerateExtension> {
             "dateLibrary" to "java8",
             "interfaceOnly" to "true",
             "useSpringBoot3" to "true",
-            "useTags" to "true"
+            "useTags" to "true",
+            "reactive" to "true",
         )
     )
 }

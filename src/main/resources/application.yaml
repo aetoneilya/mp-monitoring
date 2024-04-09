@@ -3,10 +3,10 @@ server:
 
 clickhouse:
   host: ${CH_HOST}
+  port: ${CH_PORT}
   database: ${CH_DATABASE}
   username: ${CH_USERNAME}
   password: ${CH_PASSWORD}
-  certificate: ${YA_CERT_PATH}
 
 spring:
   datasource:
