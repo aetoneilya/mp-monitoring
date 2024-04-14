@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: INIT_DB
+      author: aetoneilya
+      tagDatabase:
+        tag: INIT_DB
+  - include:
+      file: create-schema-monitoring.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-type-access-rights.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-type-alert-status.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-type-channel-type.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-table-projects.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-table-users.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-table-alerts.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-table-notification-channels.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-table-alerts-notification-channels.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-table-sensors.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-table-labels.sql
+      relativeToChangelogFile: true
+  - include:
+      file: create-table-user-project-rights.sql
+      relativeToChangelogFile: true
+

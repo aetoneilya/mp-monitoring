@@ -13,13 +13,19 @@ info:
 tags:
   - name: metrics
   - name: project
+  - name: alerts
   - name: grafana
+  - name: notification channels
+  - name: alert notification channels
+  - name: user project rights
+
 servers:
   - url: localhost:8082
     description: localhost.
 
 paths:
-  /project/create:
+  ## PROJECT ENDPOINT
+  /project:
     post:
       summary: Create a new project
       operationId: createProject
@@ -72,14 +78,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
 
-  /metrics/{project}/store:
+  ## METRICS ENDPOINT
+  /project/{projectName}/metrics/store:
     post:
       summary: Store metrics
       operationId: storeMetrics
       tags:
         - metrics
       parameters:
-        - name: project
+        - name: projectName
           in: path
           required: true
           description: The name of the project.
@@ -105,14 +112,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
 
-  /metrics/{project}/find:
+  /project/{projectName}/metrics/find:
     post:
       summary: Get metrics by labels
       operationId: getMetrics
       tags:
         - metrics
       parameters:
-        - name: project
+        - name: projectName
           in: path
           required: true
           description: The name of the project.
@@ -137,6 +144,463 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+
+  /project/{projectName}/metrics:
+    post:
+      summary: Get all metrics by project
+      operationId: getMetrics
+      tags:
+        - metrics
+      parameters:
+        - name: projectName
+          in: path
+          required: true
+          description: The name of the project.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMetricsRequest'
+      responses:
+        '200':
+          description: Successfully retrieved data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMetricsResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  ## USER PROJECT RIGHTS
+
+  /projects/{projectId}/users/{userId}/rights:
+    post:
+      summary: Grant project rights to a user for a project
+      operationId: grantProjectRights
+      tags:
+        - user project rights
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum: [ write, read ]
+              required:
+                - role
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    get:
+      summary: Get project rights for a user in a project
+      operationId: getProjectRights
+      tags:
+        - user project rights
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    enum: [ admin, user, viewer ]
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    delete:
+      summary: Revoke project rights from a user for a project
+      operationId: revokeProjectRights
+      tags:
+        - user project rights
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  ## ALERTS ENDPOINT
+  /projects/{projectId}/alerts:
+    post:
+      summary: Create a new alert for a project
+      operationId: createAlert
+      tags:
+        - alerts
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlertRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    get:
+      summary: List all alerts for a project
+      operationId: listAlerts
+      tags:
+        - alerts
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /projects/{projectId}/alerts/{alertId}:
+    get:
+      summary: Get an alert by ID for a project
+      operationId: getAlert
+      tags:
+        - alerts
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+    delete:
+      summary: Delete an alert for a project
+      operationId: deleteAlert
+      tags:
+        - alerts
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  ## NOTIFICATION CHANNELS ENDPOINT
+
+  /notification-channels:
+    post:
+      summary: Create a new notification channel
+      operationId: createNotificationChannel
+      tags:
+        - notification channels
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationChannelRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationChannel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    get:
+      summary: List all notification channels
+      operationId: listNotificationChannels
+      tags:
+        - notification channels
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationChannel'
+
+  /notification-channels/{channelId}:
+    get:
+      summary: Get a notification channel by ID
+      operationId: getNotificationChannel
+      tags:
+        - notification channels
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationChannel'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    put:
+      summary: Update a notification channel
+      operationId: updateNotificationChannel
+      tags:
+        - notification channels
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationChannelRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationChannel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    delete:
+      summary: Delete a notification channel
+      operationId: deleteNotificationChannel
+      tags:
+        - notification channels
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  ## ALERT NOTIFICATION CHANNELS ENDPOINTS
+  /projects/{projectId}/alerts/{alertId}/notification-channels:
+    post:
+      summary: Add a notification channel to an alert for a project
+      operationId: addNotificationChannelToAlert
+      tags:
+        - alert notification channels
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notificationChannelId:
+                  type: integer
+              required:
+                - notificationChannelId
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /projects/{projectId}/alerts/{alertId}/notification-channels/{channelId}:
+    delete:
+      summary: Remove a notification channel from an alert for a project
+      operationId: removeNotificationChannelFromAlert
+      tags:
+        - alert notification channels
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  ## GRAFANA ENDPOINTS
   /:
     get:
       summary: "Test connection"
@@ -684,6 +1148,70 @@ components:
       description: Metadata associated with the metric data, represented as a map of label names to values.
       additionalProperties:
         type: string
+
+    CreateAlertRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        rule:
+          type: object
+        calculationInterval:
+          type: string
+          format: duration
+      required:
+        - name
+        - rule
+        - calculationInterval
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        rule:
+          type: object
+        calculationInterval:
+          type: string
+          format: duration
+        lastCalculationTime:
+          type: string
+          format: date-time
+
+    CreateNotificationChannelRequest:
+      type: object
+      properties:
+        type:
+          type: string
+        address:
+          type: string
+      required:
+        - type
+        - address
+
+    UpdateNotificationChannelRequest:
+      type: object
+      properties:
+        type:
+          type: string
+        address:
+          type: string
+
+    NotificationChannel:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        address:
+          type: string
 
     TimeSeriesDto:
       type: array

@@ -57,21 +57,30 @@ class MetricStorageClickHouse(
         log.info("store metrics to $projectName")
         try {
             ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).use { client ->
-                val request = client.read(clickHouseNodes).write()
-                    .table(projectName).format(ClickHouseFormat.RowBinary)
+                val request = client
+                    .read(clickHouseNodes)
+                    .write()
+                    .table(projectName)
+                    .format(ClickHouseFormat.RowBinary)
+
                 val config: ClickHouseConfig = request.config
                 var future: CompletableFuture<ClickHouseResponse?>
 
 
                 ClickHouseDataStreamFactory.getInstance()
-                    .createPipedOutputStream(config, null as Runnable?).use { stream ->
+                    .createPipedOutputStream(config).use { stream ->
                         // in async mode, which is default, execution happens in a worker thread
                         future = request.data(stream.inputStream).execute()
 
-                        val processor = ClickHouseDataStreamFactory.getInstance().getProcessor(
-                            config, null,
-                            stream, null, columns
-                        )
+                        val processor = ClickHouseDataStreamFactory
+                            .getInstance()
+                            .getProcessor(
+                                config,
+                                null,
+                                stream,
+                                null,
+                                columns
+                            )
 
                         val values = columns.map { it.newValue(config) }
                         val serializers = processor.getSerializers(config, columns)
