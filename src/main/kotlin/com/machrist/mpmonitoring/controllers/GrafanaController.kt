@@ -1,12 +1,11 @@
 package com.machrist.mpmonitoring.controllers
 
-import com.machrist.mpmonitoring.api.AdHocFiltersApi
-import com.machrist.mpmonitoring.api.GrafanaApi
-import com.machrist.mpmonitoring.api.VariableApi
+
 import com.machrist.mpmonitoring.common.logger
-import com.machrist.mpmonitoring.model.*
-import com.machrist.mpmonitoring.model.ApiEndpointsListMetrics200ResponseInnerPayloadsInner.Type.select
-import com.machrist.mpmonitoring.model.ApiEndpointsListMetrics200ResponseInnerPayloadsInner.Type.textarea
+import com.machrist.mpmonitoring.openapi.AdHocFiltersApi
+import com.machrist.mpmonitoring.openapi.GrafanaApi
+import com.machrist.mpmonitoring.openapi.VariableApi
+import com.machrist.mpmonitoring.openapi.dto.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.springframework.http.ResponseEntity
@@ -56,13 +55,13 @@ class GrafanaController : GrafanaApi, AdHocFiltersApi, VariableApi {
                     ApiEndpointsListMetrics200ResponseInnerPayloadsInner(
                         name = "payload-name-2-1",
                         label = "payload-label-2-1",
-                        type = textarea,
+                        type = ApiEndpointsListMetrics200ResponseInnerPayloadsInner.Type.textarea,
                         placeholder = "sosi bibu"
                     ),
                     ApiEndpointsListMetrics200ResponseInnerPayloadsInner(
                         name = "payload-name-2-2",
                         label = "payload-label-2-2",
-                        type = select,
+                        type = ApiEndpointsListMetrics200ResponseInnerPayloadsInner.Type.select,
                         options = listOf(
                             ApiEndpointsListMetrics200ResponseInnerPayloadsInnerOptionsInner(
                                 "asd",

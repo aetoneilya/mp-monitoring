@@ -1,22 +1,29 @@
 package com.machrist.mpmonitoring.controllers
 
-import com.machrist.mpmonitoring.api.MetricsApi
+
 import com.machrist.mpmonitoring.common.logger
 import com.machrist.mpmonitoring.common.toOffsetDateTime
 import com.machrist.mpmonitoring.metric.MetricService
 import com.machrist.mpmonitoring.metric.model.MetricProject
 import com.machrist.mpmonitoring.metric.model.TimeSeriesDataPoint
-import com.machrist.mpmonitoring.model.GetMetricsRequest
-import com.machrist.mpmonitoring.model.GetMetricsResponse
-import com.machrist.mpmonitoring.model.StoreMetricsRequest
-import com.machrist.mpmonitoring.model.StoreMetricsResponse
-import com.machrist.mpmonitoring.model.StoreMetricsResponse.Status
+import com.machrist.mpmonitoring.openapi.MetricsApi
+import com.machrist.mpmonitoring.openapi.dto.GetMetricsRequest
+import com.machrist.mpmonitoring.openapi.dto.GetMetricsResponse
+import com.machrist.mpmonitoring.openapi.dto.StoreMetricsRequest
+import com.machrist.mpmonitoring.openapi.dto.StoreMetricsResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class MetricsController(val metricService: MetricService) : MetricsApi {
     val log by logger()
+    override suspend fun findMetrics(
+        projectName: String,
+        getMetricsRequest: GetMetricsRequest
+    ): ResponseEntity<GetMetricsResponse> {
+        return super.findMetrics(projectName, getMetricsRequest)
+    }
+
     override suspend fun getMetrics(
         project: String, getMetricsRequest: GetMetricsRequest
     ): ResponseEntity<GetMetricsResponse> {
@@ -43,6 +50,6 @@ class MetricsController(val metricService: MetricService) : MetricsApi {
             } ?: emptyList()
         )
 
-        return ResponseEntity.ok(StoreMetricsResponse(Status.successful, 1))
+        return ResponseEntity.ok(StoreMetricsResponse(StoreMetricsResponse.Status.successful, 1))
     }
 }
