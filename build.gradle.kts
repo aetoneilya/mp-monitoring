@@ -7,6 +7,7 @@ plugins {
     id("org.openapi.generator") version "7.1.0"
     kotlin("jvm") version "1.9.22"
     kotlin("plugin.spring") version "1.9.22"
+    kotlin("plugin.jpa") version "1.9.23"
 }
 
 group = "com.machrist"
@@ -23,7 +24,10 @@ repositories {
 dependencies {
     implementation("io.swagger.core.v3:swagger-core:2.2.19")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+//    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("org.jetbrains.kotlin.plugin.allopen:org.jetbrains.kotlin.plugin.allopen.gradle.plugin:1.9.23")
+
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.clickhouse:clickhouse-http-client:0.6.0")
@@ -42,6 +46,10 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+allOpen {
+    annotations("javax.persistence.Entity", "javax.persistence.MappedSuperclass", "javax.persistence.Embedabble")
 }
 
 tasks.withType<KotlinCompile> {
@@ -68,9 +76,9 @@ configure<OpenApiGeneratorGenerateExtension> {
     generatorName.set("kotlin-spring")
     inputSpec.set("${rootDir}/src/main/resources/open-api/api.yaml")
     outputDir.set("${layout.buildDirectory.dir("generated").get()}")
-    apiPackage = "com.machrist.mpmonitoring.api"
+    apiPackage = "com.machrist.mpmonitoring.openapi"
     invokerPackage = "com.machrist.mpmonitoring"
-    modelPackage = "com.machrist.mpmonitoring.model"
+    modelPackage = "com.machrist.mpmonitoring.openapi.dto"
     configOptions.set(
         mapOf(
             "dateLibrary" to "java8",

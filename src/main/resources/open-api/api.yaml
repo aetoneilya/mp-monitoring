@@ -115,7 +115,7 @@ paths:
   /project/{projectName}/metrics/find:
     post:
       summary: Get metrics by labels
-      operationId: getMetrics
+      operationId: findMetrics
       tags:
         - metrics
       parameters:
@@ -1074,9 +1074,13 @@ components:
 
     StoreMetricsRequest:
       type: object
+      required:
+        - metrics
       properties:
         metrics:
           $ref: '#/components/schemas/MetricDto'
+        sensorId:
+          type: integer
 
     GetMetricsRequest:
       type: object
