@@ -2,7 +2,6 @@ package com.machrist.mpmonitoring.metric
 
 import com.machrist.mpmonitoring.metric.model.MetricProject
 import com.machrist.mpmonitoring.metric.model.TimeSeries
-import com.machrist.mpmonitoring.metric.model.TimeSeriesDataPoint
 import com.machrist.mpmonitoring.metric.model.from
 import com.machrist.mpmonitoring.metric.storage.MetricStorage
 import com.machrist.mpmonitoring.model.Label
@@ -11,6 +10,7 @@ import com.machrist.mpmonitoring.model.Sensor
 import com.machrist.mpmonitoring.repository.LabelRepository
 import com.machrist.mpmonitoring.repository.SensorRepository
 import org.springframework.stereotype.Service
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @Service
@@ -25,6 +25,7 @@ class MetricService(
             .groupBy { it.sensor }
             .filter { labels -> labels.value.all { metadata[it.labelName] == it.labelValue } }
             .mapNotNull { it.key }
+            .toSet()
 
     fun createSensor(
         project: Project,
@@ -37,15 +38,27 @@ class MetricService(
         return sensor
     }
 
+    fun findMetrics(
+        sensors: Set<Sensor>,
+        from: OffsetDateTime?,
+        to: OffsetDateTime?,
+    ): Map<Sensor, TimeSeries> {
+        val timeSeriesBySensor: MutableMap<Sensor, TimeSeries> = mutableMapOf()
+        for (sensor in sensors) {
+            timeSeriesBySensor[sensor] = metricStorage.getMetric(MetricProject.from(sensor.project!!), sensor.storageSensorName, from, to)
+        }
+        return timeSeriesBySensor
+    }
+
     /**
      * returns created or existing sensor and number of processed metric values
      */
     fun storeMetrics(
         project: Project,
         sensor: Sensor,
-        timeSeries: List<TimeSeriesDataPoint>,
+        timeSeries: TimeSeries,
     ): Pair<Sensor, Long> {
-        metricStorage.storeMetric(MetricProject.from(project), TimeSeries(sensor.storageSensorName, timeSeries))
-        return Pair(sensor, timeSeries.size.toLong())
+        metricStorage.storeMetric(MetricProject.from(project), sensor.storageSensorName, timeSeries)
+        return Pair(sensor, timeSeries.size())
     }
 }

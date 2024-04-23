@@ -4,7 +4,6 @@ import com.machrist.mpmonitoring.common.logger
 import com.machrist.mpmonitoring.common.toOffsetDateTime
 import com.machrist.mpmonitoring.metric.MetricService
 import com.machrist.mpmonitoring.metric.ProjectService
-import com.machrist.mpmonitoring.metric.model.TimeSeriesDataPoint
 import com.machrist.mpmonitoring.openapi.MetricsApi
 import com.machrist.mpmonitoring.openapi.dto.GetMetricsRequest
 import com.machrist.mpmonitoring.openapi.dto.GetMetricsResponse
@@ -25,9 +24,15 @@ class MetricsController(
     override suspend fun findMetrics(
         projectName: String,
         getMetricsRequest: GetMetricsRequest,
-    ): ResponseEntity<GetMetricsResponse> {
-        return super.findMetrics(projectName, getMetricsRequest)
-    }
+    ): ResponseEntity<GetMetricsResponse> =
+        with(getMetricsRequest) {
+            val project = findProjectOrThrow(projectName)
+
+            val sensor = metricService.findSensorsByLabels(metadata)
+            metricService.findMetrics(sensor, from?.let { toOffsetDateTime(it) }, to?.let { toOffsetDateTime(it) })
+
+            return ResponseEntity.ok(GetMetricsResponse())
+        }
 
     override suspend fun getMetrics(
         projectName: String,
@@ -44,9 +49,7 @@ class MetricsController(
     ): ResponseEntity<StoreMetricsResponse> {
         log.info("storeMetrics: $projectName, $storeMetricsRequest")
 
-        val project =
-            projectService.getProject(projectName)
-                ?: throw NoResourceFoundException(HttpMethod.POST, "project/$projectName")
+        val project = findProjectOrThrow(projectName)
 
         val metadata = storeMetricsRequest.metrics.metadata
         val sensor =
@@ -59,14 +62,13 @@ class MetricsController(
             metricService.storeMetrics(
                 project,
                 sensor,
-                storeMetricsRequest.metrics.timeSeries?.map {
-                    TimeSeriesDataPoint(
-                        toOffsetDateTime(it.timestamp),
-                        it.value.toDouble(),
-                    )
-                } ?: emptyList(),
+                storeMetricsRequest.metrics.timeSeries.toDto(),
             )
 
         return ResponseEntity.ok(StoreMetricsResponse(StoreMetricsResponse.Status.successful, count.toInt()))
     }
+
+    private fun findProjectOrThrow(projectName: String) =
+        projectService.getProject(projectName)
+            ?: throw NoResourceFoundException(HttpMethod.POST, "project/$projectName")
 }
