@@ -8,6 +8,17 @@ import java.time.ZoneOffset
 
 fun <T : Any> T.logger(): Lazy<Logger> = lazyOf(LoggerFactory.getLogger(this.javaClass.name))
 
+fun toOffsetDateTime(epochMillis: Long?): OffsetDateTime? {
+    return epochMillis?.let { toOffsetDateTime(it) }
+}
+
 fun toOffsetDateTime(epochMillis: Long): OffsetDateTime {
-    return OffsetDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC)
+    return OffsetDateTime.ofInstant(Instant.ofEpochSecond(epochMillis), ZoneOffset.UTC)
+}
+
+fun <T : Collection<Any>> T.emptyToNull(): T? {
+    if (this.isEmpty()) {
+        return null
+    }
+    return this
 }

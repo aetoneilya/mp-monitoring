@@ -27,7 +27,7 @@ open class Label(
     open var sensor: Sensor?,
     @NotNull
     @Column(name = "label_name", nullable = false, length = Integer.MAX_VALUE)
-    open var labelName: String?,
+    open var labelName: String,
     @Column(name = "label_value", length = Integer.MAX_VALUE)
-    open var labelValue: String?,
+    open var labelValue: String,
 )

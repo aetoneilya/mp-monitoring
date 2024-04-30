@@ -1,8 +1,7 @@
 package com.machrist.mpmonitoring.metric
 
-import com.machrist.mpmonitoring.metric.model.MetricProject
+import com.machrist.mpmonitoring.common.emptyToNull
 import com.machrist.mpmonitoring.metric.model.TimeSeries
-import com.machrist.mpmonitoring.metric.model.from
 import com.machrist.mpmonitoring.metric.storage.MetricStorage
 import com.machrist.mpmonitoring.model.Label
 import com.machrist.mpmonitoring.model.Project
@@ -26,12 +25,13 @@ class MetricService(
             .filter { labels -> labels.value.all { metadata[it.labelName] == it.labelValue } }
             .mapNotNull { it.key }
             .toSet()
+            .emptyToNull()
 
     fun createSensor(
         project: Project,
         metadata: Map<String, String>,
     ): Sensor {
-        val sensor = Sensor(project = project, storageSensorName = UUID.randomUUID().toString())
+        val sensor = Sensor(project = project, storageSensorName = UUID.randomUUID().toString().replace("-", ""))
         val labels = metadata.map { Label(sensor = sensor, labelName = it.key, labelValue = it.value) }
         sensorRepository.save(sensor)
         labelsRepository.saveAll(labels)
@@ -45,7 +45,8 @@ class MetricService(
     ): Map<Sensor, TimeSeries> {
         val timeSeriesBySensor: MutableMap<Sensor, TimeSeries> = mutableMapOf()
         for (sensor in sensors) {
-            timeSeriesBySensor[sensor] = metricStorage.getMetric(MetricProject.from(sensor.project!!), sensor.storageSensorName, from, to)
+            timeSeriesBySensor[sensor] =
+                metricStorage.getMetric(sensor.project!!.name, sensor.storageSensorName, from, to)
         }
         return timeSeriesBySensor
     }
@@ -58,7 +59,7 @@ class MetricService(
         sensor: Sensor,
         timeSeries: TimeSeries,
     ): Pair<Sensor, Long> {
-        metricStorage.storeMetric(MetricProject.from(project), sensor.storageSensorName, timeSeries)
+        metricStorage.storeMetric(sensor.project!!.name, sensor.storageSensorName, timeSeries)
         return Pair(sensor, timeSeries.size())
     }
 }

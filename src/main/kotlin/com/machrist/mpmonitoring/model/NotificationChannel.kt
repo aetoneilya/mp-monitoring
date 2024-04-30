@@ -39,6 +39,7 @@ open class NotificationChannel(
     open var address: MutableMap<String, Any>? = null,
     @ManyToMany
     @JoinTable(
+        schema = "monitoring",
         name = "alerts_notification_channels",
         joinColumns = [JoinColumn(name = "notification_channel_id")],
         inverseJoinColumns = [JoinColumn(name = "alert_id")],

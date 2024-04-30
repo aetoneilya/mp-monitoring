@@ -9,8 +9,8 @@ import com.clickhouse.data.ClickHouseColumn
 import com.clickhouse.data.ClickHouseDataStreamFactory
 import com.clickhouse.data.ClickHouseFormat
 import com.machrist.mpmonitoring.common.logger
-import com.machrist.mpmonitoring.metric.model.MetricProject
 import com.machrist.mpmonitoring.metric.model.TimeSeries
+import com.machrist.mpmonitoring.metric.model.TimeSeriesDataPoint
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
 import java.util.concurrent.CompletableFuture
@@ -34,50 +34,56 @@ class MetricStorageClickHouse(
                                 ORDER BY (sensor, time)
                                 SETTINGS index_granularity = 8192
                                 """
+
         const val TABLE_EXISTS = """
-            EXISTS :table_name
-        """
+                                EXISTS :table_name
+                                """
+
+        const val GET_TIME_SERIES = """
+                                SELECT time, value FROM :table_name 
+                                WHERE sensor = :sensor AND time BETWEEN :from AND :to
+                                """
     }
 
-    override fun createProject(project: MetricProject) {
-        log.info("creating project ${project.name}")
+    override fun createProject(projectName: String) {
+        log.info("creating project $projectName")
         ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).use { client ->
             client.read(clickHouseNodes)
                 .format(ClickHouseFormat.RowBinaryWithNamesAndTypes)
                 .query(CREATE_TABLE_QUERY)
-                .params(mapOf("table_name" to project.name))
-                .execute()
+                .params(mapOf("table_name" to projectName))
+                .executeAndWait()
         }
     }
 
-    override fun projectExists(project: MetricProject): Boolean {
-        log.info("checking project existance ${project.name}")
+    override fun projectExists(projectName: String): Boolean {
+        log.info("checking project existence $projectName")
         val result =
             ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).read(clickHouseNodes)
                 .format(ClickHouseFormat.RowBinaryWithNamesAndTypes)
                 .query(TABLE_EXISTS)
-                .params(mapOf("table_name" to project.name))
+                .params(mapOf("table_name" to projectName))
                 .executeAndWait()
 
         return result.firstRecord().getValue(0).asInteger() > 0
     }
 
     override fun storeMetric(
-        project: MetricProject,
+        projectName: String,
         sensorName: String,
         timeSeries: TimeSeries,
     ) {
         val columns =
             ClickHouseColumn.parse("`sensor` LowCardinality(String), `time` DateTime CODEC(Delta(4), ZSTD(1)),  `value` Double")
 
-        log.info("store metrics to ${project.name}")
+        log.info("store metrics to $projectName")
 
         ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).use { client ->
             val request =
                 client
                     .read(clickHouseNodes)
                     .write()
-                    .table(project.name)
+                    .table(projectName)
                     .format(ClickHouseFormat.RowBinary)
 
             val config: ClickHouseConfig = request.config
@@ -116,11 +122,39 @@ class MetricStorageClickHouse(
     }
 
     override fun getMetric(
-        project: MetricProject,
+        projectName: String,
         sensorName: String,
         from: OffsetDateTime?,
         to: OffsetDateTime?,
     ): TimeSeries {
-        TODO("Not yet implemented")
+        val fromArgument = from?.toInstant()?.epochSecond?.toString() ?: "0"
+        val toArgument = to?.toInstant()?.epochSecond?.toString() ?: "inf"
+
+        log.info("get metric $projectName sensor $sensorName from $fromArgument to $toArgument")
+        val result =
+            ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).use { client ->
+                client.read(clickHouseNodes)
+                    .format(ClickHouseFormat.RowBinaryWithNamesAndTypes)
+                    .query(GET_TIME_SERIES)
+                    .params(
+                        mapOf<String, String>(
+                            "table_name" to projectName,
+                            "sensor" to "'$sensorName'",
+                            "from" to fromArgument,
+                            "to" to toArgument,
+                        ),
+                    )
+                    .executeAndWait()
+                    .records()
+                    .map {
+                        TimeSeriesDataPoint(
+                            it.getValue("time").asOffsetDateTime(),
+                            it.getValue("value").asDouble(),
+                        )
+                    }
+                    .toList()
+            }
+
+        return TimeSeries(result)
     }
 }

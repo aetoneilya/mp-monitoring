@@ -27,6 +27,8 @@ open class Sensor(
     @NotNull
     @Column(name = "storage_sensor_name", nullable = false, length = Integer.MAX_VALUE)
     open var storageSensorName: String,
-    @OneToMany(mappedBy = "sensor")
+    @OneToMany(mappedBy = "sensor", fetch = FetchType.EAGER)
     open var labels: MutableSet<Label> = mutableSetOf(),
-)
+) {
+    fun buildLabelsMap() = labels.associateBy({ it.labelName }, { it.labelValue })
+}

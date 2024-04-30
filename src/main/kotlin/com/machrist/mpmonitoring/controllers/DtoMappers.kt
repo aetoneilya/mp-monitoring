@@ -19,9 +19,18 @@ fun ProjectDto.toEntity(): Project =
         description = description,
     )
 
-fun List<TimeSeriesDataPointDto>?.toDto() =
+fun List<TimeSeriesDataPointDto>?.toEntity() =
     TimeSeries(
         this?.map { TimeSeriesDataPoint(toOffsetDateTime(it.timestamp), it.value.toDouble()) }
             ?.sortedBy { it.dateTime }
             .orEmpty(),
     )
+
+fun TimeSeries.toDto(): List<TimeSeriesDataPointDto> {
+    return this.timeSeriesPoints.map {
+        TimeSeriesDataPointDto(
+            it.dateTime.toInstant().epochSecond,
+            it.value.toBigDecimal(),
+        )
+    }
+}

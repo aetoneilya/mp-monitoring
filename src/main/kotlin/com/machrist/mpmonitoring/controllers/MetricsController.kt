@@ -7,6 +7,7 @@ import com.machrist.mpmonitoring.metric.ProjectService
 import com.machrist.mpmonitoring.openapi.MetricsApi
 import com.machrist.mpmonitoring.openapi.dto.GetMetricsRequest
 import com.machrist.mpmonitoring.openapi.dto.GetMetricsResponse
+import com.machrist.mpmonitoring.openapi.dto.MetricDto
 import com.machrist.mpmonitoring.openapi.dto.StoreMetricsRequest
 import com.machrist.mpmonitoring.openapi.dto.StoreMetricsResponse
 import org.springframework.http.HttpMethod
@@ -28,19 +29,25 @@ class MetricsController(
         with(getMetricsRequest) {
             val project = findProjectOrThrow(projectName)
 
-            val sensor = metricService.findSensorsByLabels(metadata)
-            metricService.findMetrics(sensor, from?.let { toOffsetDateTime(it) }, to?.let { toOffsetDateTime(it) })
+            val sensors = metricService.findSensorsByLabels(metadata) ?: throw RuntimeException("Not found")
 
-            return ResponseEntity.ok(GetMetricsResponse())
+            val timeSeriesBySensor = metricService.findMetrics(sensors, toOffsetDateTime(from), toOffsetDateTime(to))
+
+            val metricsDto =
+                timeSeriesBySensor.map { (sensor, timeSeries) ->
+                    MetricDto(
+                        sensor.buildLabelsMap(),
+                        timeSeries.toDto(),
+                    )
+                }
+
+            return ResponseEntity.ok(GetMetricsResponse(metricsDto))
         }
 
     override suspend fun getMetrics(
-        projectName: String,
-        getMetricsRequest: GetMetricsRequest,
+        projectName: String
     ): ResponseEntity<GetMetricsResponse> {
-        log.info("getMetrics: $projectName, $getMetricsRequest")
-
-        return super.getMetrics(projectName, getMetricsRequest)
+        return super.getMetrics(projectName)
     }
 
     override suspend fun storeMetrics(
@@ -53,16 +60,18 @@ class MetricsController(
 
         val metadata = storeMetricsRequest.metrics.metadata
         val sensor =
-            metricService.findSensorsByLabels(metadata).minByOrNull { it.labels.count() }
+            metricService.findSensorsByLabels(metadata)?.minByOrNull { it.labels.count() }
                 ?: metricService.createSensor(project, metadata)
 
         log.info("found sensor: $sensor")
+
+        log.info("ts: ${storeMetricsRequest.metrics.timeSeries.toEntity()}")
 
         val (_, count) =
             metricService.storeMetrics(
                 project,
                 sensor,
-                storeMetricsRequest.metrics.timeSeries.toDto(),
+                storeMetricsRequest.metrics.timeSeries.toEntity(),
             )
 
         return ResponseEntity.ok(StoreMetricsResponse(StoreMetricsResponse.Status.successful, count.toInt()))

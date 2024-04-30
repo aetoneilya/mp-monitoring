@@ -146,7 +146,7 @@ paths:
                 $ref: '#/components/schemas/ApiErrorResponse'
 
   /project/{projectName}/metrics:
-    post:
+    get:
       summary: Get all metrics by project
       operationId: getMetrics
       tags:
@@ -158,12 +158,6 @@ paths:
           description: The name of the project.
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetMetricsRequest'
       responses:
         '200':
           description: Successfully retrieved data
@@ -1143,8 +1137,6 @@ components:
         metadata:
           $ref: '#/components/schemas/MetadataDto'
       required:
-        - name
-        - data
         - metadata
 
     MetadataDto:

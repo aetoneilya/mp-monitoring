@@ -46,6 +46,7 @@ open class Alert(
     @ManyToMany
     @JoinTable(
         name = "alerts_notification_channels",
+        schema = "monitoring",
         joinColumns = [JoinColumn(name = "alert_id")],
         inverseJoinColumns = [JoinColumn(name = "notification_channel_id")],
     )

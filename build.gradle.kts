@@ -41,8 +41,6 @@ dependencies {
     implementation("org.reactivestreams:reactive-streams:1.0.4")
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.0")
 
-
-
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -74,7 +72,7 @@ sourceSets {
 
 configure<OpenApiGeneratorGenerateExtension> {
     generatorName.set("kotlin-spring")
-    inputSpec.set("${rootDir}/src/main/resources/open-api/api.yaml")
+    inputSpec.set("$rootDir/src/main/resources/open-api/api.yaml")
     outputDir.set("${layout.buildDirectory.dir("generated").get()}")
     apiPackage = "com.machrist.mpmonitoring.openapi"
     invokerPackage = "com.machrist.mpmonitoring"
@@ -86,6 +84,6 @@ configure<OpenApiGeneratorGenerateExtension> {
             "useSpringBoot3" to "true",
             "useTags" to "true",
             "reactive" to "true",
-        )
+        ),
     )
 }
