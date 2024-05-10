@@ -1,19 +1,19 @@
 package com.machrist.matrixprofile
 
 interface MatrixProfile {
-    fun profile(): DoubleArray
+    val profile: DoubleArray
 
-    fun indexes(): IntArray
+    val indexes: IntArray
 
-    fun rightProfile(): DoubleArray?
+    val rightProfile: DoubleArray?
 
-    fun rightIndexes(): IntArray?
+    val rightIndexes: IntArray?
 
-    fun leftProfile(): DoubleArray?
+    val leftProfile: DoubleArray?
 
-    fun leftIndexes(): IntArray?
+    val leftIndexes: IntArray?
 
-    fun exclusionZone(): Double
+    val exclusionZone: Double
 
-    fun windowSize(): Int
+    val windowSize: Int
 }

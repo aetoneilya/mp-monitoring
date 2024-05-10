@@ -1,31 +1,15 @@
 package com.machrist.matrixprofile
 
 data class BaseMatrixProfile(
-    val windowSize: Int,
-    val exclusionZone: Double,
-    val profile: DoubleArray,
-    val indexes: IntArray,
-    val rightProfile: DoubleArray?,
-    val leftProfile: DoubleArray?,
-    val rightIndexes: IntArray?,
-    val leftIndexes: IntArray?,
+    override val windowSize: Int,
+    override val exclusionZone: Double,
+    override val profile: DoubleArray,
+    override val indexes: IntArray,
+    override val rightProfile: DoubleArray?,
+    override val leftProfile: DoubleArray?,
+    override val rightIndexes: IntArray?,
+    override val leftIndexes: IntArray?,
 ) : MatrixProfile {
-    override fun profile(): DoubleArray = profile
-
-    override fun indexes(): IntArray = indexes
-
-    override fun rightProfile(): DoubleArray? = rightProfile
-
-    override fun rightIndexes(): IntArray? = rightIndexes
-
-    override fun leftProfile(): DoubleArray? = leftProfile
-
-    override fun leftIndexes(): IntArray? = leftIndexes
-
-    override fun exclusionZone(): Double = exclusionZone
-
-    override fun windowSize(): Int = windowSize
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

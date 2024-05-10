@@ -1,16 +1,15 @@
 package com.machrist.matrixprofile
 
 import com.machrist.windowstatistic.RollingWindowStatistics
-import com.machrist.windowstatistic.WindowStatistic
 import org.apache.commons.math3.complex.Complex
 import java.util.function.Function
 
-interface DistanceProfileFunction<S : WindowStatistic> :
-    Function<DistanceProfileQuery<S>, DistanceProfile>
+interface DistanceProfileFunction :
+    Function<DistanceProfileQuery, DistanceProfile>
 
-data class DistanceProfileQuery<S : WindowStatistic>(
-    val data: RollingWindowStatistics<S>,
-    val query: RollingWindowStatistics<S>,
+data class DistanceProfileQuery(
+    val data: RollingWindowStatistics,
+    val query: RollingWindowStatistics,
     val queryIndex: Int,
     val windowSize: Int,
     val dataFft: Array<Complex>?,
@@ -18,8 +17,8 @@ data class DistanceProfileQuery<S : WindowStatistic>(
     val norm: Boolean,
 ) {
     constructor(
-        ts: RollingWindowStatistics<S>,
-        query: RollingWindowStatistics<S>,
+        ts: RollingWindowStatistics,
+        query: RollingWindowStatistics,
         queryIndex: Int,
         windowSize: Int,
         fft: Array<Complex>?,
@@ -29,7 +28,7 @@ data class DistanceProfileQuery<S : WindowStatistic>(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as DistanceProfileQuery<*>
+        other as DistanceProfileQuery
 
         if (data != other.data) return false
         if (query != other.query) return false
@@ -59,4 +58,27 @@ data class DistanceProfileQuery<S : WindowStatistic>(
     }
 }
 
-data class DistanceProfile(val profile: DoubleArray, val product: DoubleArray?)
+data class DistanceProfile(val profile: DoubleArray, val product: DoubleArray?) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DistanceProfile
+
+        if (!profile.contentEquals(other.profile)) return false
+        if (product != null) {
+            if (other.product == null) return false
+            if (!product.contentEquals(other.product)) return false
+        } else if (other.product != null) {
+            return false
+        }
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = profile.contentHashCode()
+        result = 31 * result + (product?.contentHashCode() ?: 0)
+        return result
+    }
+}

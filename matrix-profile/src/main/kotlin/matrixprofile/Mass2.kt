@@ -3,7 +3,6 @@ package com.machrist.matrixprofile
 import com.machrist.common.forwardFft
 import com.machrist.common.inverseFft
 import com.machrist.common.padSize
-import com.machrist.windowstatistic.WindowStatistic
 import org.apache.commons.math3.complex.Complex
 import kotlin.math.sqrt
 
@@ -11,8 +10,8 @@ import kotlin.math.sqrt
  * MASS_V2 Mueen's Algorithm for Similarity Search is The Fastest Similarity Search Algorithm for
  * Time Series Subsequences under Euclidean Distance and Correlation Coefficient. Reference: [FastestSimilaritySearch.html](https://www.cs.unm.edu/~mueen/FastestSimilaritySearch.html)
  */
-class Mass2<S : WindowStatistic> : DistanceProfileFunction<S> {
-    override fun apply(dsq: DistanceProfileQuery<S>): DistanceProfile {
+class Mass2 : DistanceProfileFunction {
+    override fun apply(dsq: DistanceProfileQuery): DistanceProfile {
         val n = dsq.data.dataSize()
         val m = dsq.windowSize
         val qIndex = dsq.queryIndex

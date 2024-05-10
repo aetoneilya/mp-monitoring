@@ -1,13 +1,9 @@
 package com.machrist.windowstatistic
 
-interface WindowStatistic {
-    fun x(): Double
-
-    fun mean(): Double
-
-    fun stdDev(): Double
-
-    fun id(): Long
-
-    fun skip(): Boolean
-}
+data class WindowStatistic(
+    val x: Double,
+    val mean: Double,
+    val stdDev: Double,
+    val id: Long,
+    val skip: Boolean,
+)

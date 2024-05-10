@@ -3,8 +3,7 @@ package matrixprofile
 import com.machrist.matrixprofile.BaseMatrixProfile
 import com.machrist.matrixprofile.Stomp
 import com.machrist.matrixprofile.Stompi
-import com.machrist.windowstatistic.BaseRollingWindowStatistics
-import com.machrist.windowstatistic.BaseWindowStatistic
+import com.machrist.windowstatistic.RollingWindowStatistics
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -17,7 +16,7 @@ class StompTest {
     @Test
     fun test() {
         val windowSize = 30
-        val initialStats = BaseRollingWindowStatistics<BaseWindowStatistic>(windowSize, 200)
+        val initialStats = RollingWindowStatistics(windowSize, 200)
 
         val data = ArrayList<Double>()
 
@@ -68,22 +67,22 @@ class StompTest {
 
         val incrementalBatch = stompi2.get()
 
-        assertArrayEquals(incremental.indexes(), mp!!.indexes())
+        assertArrayEquals(incremental.indexes, mp!!.indexes)
 
-        assertArrayEquals(incremental.leftIndexes(), mp.leftIndexes())
-        assertArrayEquals(incremental.rightIndexes(), mp.rightIndexes())
+        assertArrayEquals(incremental.leftIndexes, mp.leftIndexes)
+        assertArrayEquals(incremental.rightIndexes, mp.rightIndexes)
 
-        arrayEquals(incremental.profile(), mp.profile())
-        arrayEquals(incremental.leftProfile(), mp.leftProfile())
-        arrayEquals(incremental.rightProfile(), mp.rightProfile())
+        arrayEquals(incremental.profile, mp.profile)
+        arrayEquals(incremental.leftProfile, mp.leftProfile)
+        arrayEquals(incremental.rightProfile, mp.rightProfile)
 
-        assertArrayEquals(incrementalBatch.indexes(), mp.indexes())
-        assertArrayEquals(incrementalBatch.leftIndexes(), mp.leftIndexes())
-        assertArrayEquals(incrementalBatch.rightIndexes(), mp.rightIndexes())
+        assertArrayEquals(incrementalBatch.indexes, mp.indexes)
+        assertArrayEquals(incrementalBatch.leftIndexes, mp.leftIndexes)
+        assertArrayEquals(incrementalBatch.rightIndexes, mp.rightIndexes)
 
-        arrayEquals(incrementalBatch.profile(), mp.profile())
-        arrayEquals(incrementalBatch.leftProfile(), mp.leftProfile())
-        arrayEquals(incrementalBatch.rightProfile(), mp.rightProfile())
+        arrayEquals(incrementalBatch.profile, mp.profile)
+        arrayEquals(incrementalBatch.leftProfile, mp.leftProfile)
+        arrayEquals(incrementalBatch.rightProfile, mp.rightProfile)
     }
 
     @Test
@@ -101,12 +100,12 @@ class StompTest {
 
         val mp = stomp.get()
 
-        arrayEquals(mp?.profile(), check.profile())
-        assertArrayEquals(mp?.indexes(), check.indexes())
-        arrayEquals(mp?.leftProfile(), check.leftProfile())
-        assertArrayEquals(mp?.leftIndexes(), check.leftIndexes())
-        arrayEquals(mp?.rightProfile(), check.rightProfile())
-        assertArrayEquals(mp?.rightIndexes(), check.rightIndexes())
+        arrayEquals(mp?.profile, check.profile)
+        assertArrayEquals(mp?.indexes, check.indexes)
+        arrayEquals(mp?.leftProfile, check.leftProfile)
+        assertArrayEquals(mp?.leftIndexes, check.leftIndexes)
+        arrayEquals(mp?.rightProfile, check.rightProfile)
+        assertArrayEquals(mp?.rightIndexes, check.rightIndexes)
     }
 
     private fun arrayEquals(

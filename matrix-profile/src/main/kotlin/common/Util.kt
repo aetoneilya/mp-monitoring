@@ -13,7 +13,7 @@ import kotlin.math.sqrt
 val EPS = sqrt(Math.ulp(1.0))
 
 fun forwardFft(
-    data: RollingWindowStatistics<*>,
+    data: RollingWindowStatistics,
     isQuery: Boolean,
     skip: Long,
     padSize: Int,
@@ -25,11 +25,11 @@ fun forwardFft(
             .toStreamReversed()
             .skip(skip)
             .limit(data.windowSize().toLong())
-            .forEach { s -> padded[k[0]++] = s.x() }
+            .forEach { s -> padded[k[0]++] = s.x }
     } else {
         data.getStatsBuffer()
             .toStream()
-            .forEach { s -> padded[k[0]++] = s.x() }
+            .forEach { s -> padded[k[0]++] = s.x }
     }
     val transformer = FastFourierTransformer(DftNormalization.STANDARD)
     return transformer.transform(padded, TransformType.FORWARD)
