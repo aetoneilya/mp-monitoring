@@ -1,7 +1,7 @@
-package com.machrist.matrixprofile
+package com.machrist.mpmonitoring.metric.mp.matrixprofile
 
-import com.machrist.common.EPS
-import com.machrist.windowstatistic.RollingWindowStatistics
+import com.machrist.mpmonitoring.metric.mp.common.EPS
+import com.machrist.mpmonitoring.metric.mp.windowstatistic.RollingWindowStatistics
 import kotlin.math.floor
 
 abstract class BaseMatrixProfileAlgorithm<M : MatrixProfile>(

@@ -1,6 +1,6 @@
-package com.machrist.matrixprofile
+package com.machrist.mpmonitoring.metric.mp.matrixprofile
 
-import com.machrist.windowstatistic.RollingWindowStatistics
+import com.machrist.mpmonitoring.metric.mp.windowstatistic.RollingWindowStatistics
 import java.util.function.Supplier
 
 interface MatrixProfileAlgorithm<M : MatrixProfile> : Supplier<M?> {

@@ -1,9 +1,6 @@
-package matrixprofile
+package com.machrist.mpmonitoring.metric.mp.matrixprofile
 
-import com.machrist.matrixprofile.BaseMatrixProfile
-import com.machrist.matrixprofile.Stomp
-import com.machrist.matrixprofile.Stompi
-import com.machrist.windowstatistic.RollingWindowStatistics
+import com.machrist.mpmonitoring.metric.mp.windowstatistic.RollingWindowStatistics
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -151,7 +148,7 @@ class StompTest {
 
     data class ToyData(val x: Double, val y: Double, val z: Double)
 
-    fun loadCheck(
+    private fun loadCheck(
         fileName: String,
         partial: Boolean = false,
     ): BaseMatrixProfile {

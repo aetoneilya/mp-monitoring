@@ -1,4 +1,4 @@
-package com.machrist.matrixprofile
+package com.machrist.mpmonitoring.metric.mp.matrixprofile
 
 data class BaseMatrixProfile(
     override val windowSize: Int,

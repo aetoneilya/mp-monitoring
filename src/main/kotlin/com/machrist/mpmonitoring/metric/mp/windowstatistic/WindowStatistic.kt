@@ -1,4 +1,4 @@
-package com.machrist.windowstatistic
+package com.machrist.mpmonitoring.metric.mp.windowstatistic
 
 data class WindowStatistic(
     val x: Double,

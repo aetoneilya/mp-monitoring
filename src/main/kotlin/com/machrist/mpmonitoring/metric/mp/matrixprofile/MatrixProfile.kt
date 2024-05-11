@@ -1,4 +1,4 @@
-package com.machrist.matrixprofile
+package com.machrist.mpmonitoring.metric.mp.matrixprofile
 
 interface MatrixProfile {
     val profile: DoubleArray

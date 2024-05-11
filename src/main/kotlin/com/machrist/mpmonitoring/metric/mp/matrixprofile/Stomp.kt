@@ -1,9 +1,9 @@
-package com.machrist.matrixprofile
+package com.machrist.mpmonitoring.metric.mp.matrixprofile
 
-import com.machrist.common.EPS
-import com.machrist.common.forwardFft
-import com.machrist.common.padSize
-import com.machrist.windowstatistic.RollingWindowStatistics
+import com.machrist.mpmonitoring.metric.mp.common.EPS
+import com.machrist.mpmonitoring.metric.mp.common.forwardFft
+import com.machrist.mpmonitoring.metric.mp.common.padSize
+import com.machrist.mpmonitoring.metric.mp.windowstatistic.RollingWindowStatistics
 import java.util.Arrays
 import kotlin.math.abs
 import kotlin.math.floor

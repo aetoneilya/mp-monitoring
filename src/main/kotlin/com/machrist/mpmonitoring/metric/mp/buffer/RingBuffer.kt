@@ -1,7 +1,5 @@
-package buffer
+package com.machrist.mpmonitoring.metric.mp.buffer
 
-import java.util.stream.IntStream
-import java.util.stream.Stream
 import kotlin.math.min
 
 abstract class RingBuffer<T>(
@@ -40,14 +38,7 @@ abstract class RingBuffer<T>(
 
     fun tail(): T = get(size() - 1)
 
-    fun toStream(): Stream<T> =
-        IntStream.range(0, size())
-            .mapToObj { i -> get(i) }
+    fun asSequence(): Sequence<T> = (0..<size()).asSequence().map { get(it) }
 
-    fun toStreamReversed(): Stream<T> {
-        return IntStream
-            .iterate(size() - 1) { i: Int -> i - 1 }
-            .limit((size()).toLong())
-            .mapToObj { i: Int -> this[i] }
-    }
+    fun asReversedSequence(): Sequence<T> = (size() - 1 downTo 0).asSequence().map { get(it) }
 }

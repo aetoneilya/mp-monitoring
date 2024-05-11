@@ -1,7 +1,4 @@
-package buffer
-
-import java.util.stream.IntStream
-import java.util.stream.Stream
+package com.machrist.mpmonitoring.metric.mp.buffer
 
 class ObjectRingBuffer<T>(
     buffSize: Int,

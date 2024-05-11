@@ -1,6 +1,6 @@
-package com.machrist.common
+package com.machrist.mpmonitoring.metric.mp.common
 
-import com.machrist.windowstatistic.RollingWindowStatistics
+import com.machrist.mpmonitoring.metric.mp.windowstatistic.RollingWindowStatistics
 import org.apache.commons.math3.complex.Complex
 import org.apache.commons.math3.transform.DftNormalization
 import org.apache.commons.math3.transform.FastFourierTransformer
@@ -22,13 +22,13 @@ fun forwardFft(
     val k = IntArray(1)
     if (isQuery) {
         data.getStatsBuffer()
-            .toStreamReversed()
-            .skip(skip)
-            .limit(data.windowSize().toLong())
+            .asReversedSequence()
+            .drop(skip.toInt())
+            .take(data.windowSize())
             .forEach { s -> padded[k[0]++] = s.x }
     } else {
         data.getStatsBuffer()
-            .toStream()
+            .asSequence()
             .forEach { s -> padded[k[0]++] = s.x }
     }
     val transformer = FastFourierTransformer(DftNormalization.STANDARD)

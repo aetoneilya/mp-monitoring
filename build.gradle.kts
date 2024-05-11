@@ -33,6 +33,7 @@ dependencies {
     implementation("com.clickhouse:clickhouse-http-client:0.6.0")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
     implementation("org.slf4j:slf4j-api:2.0.11")
+    implementation("org.apache.commons:commons-math3:3.6.1")
 //    implementation("org.springframework.boot:spring-boot-starter-data-mongodb:3.2.3")
     implementation("org.postgresql:postgresql:42.7.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")

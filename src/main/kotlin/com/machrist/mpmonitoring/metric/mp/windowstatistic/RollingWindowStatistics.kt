@@ -1,7 +1,7 @@
-package com.machrist.windowstatistic
+package com.machrist.mpmonitoring.metric.mp.windowstatistic
 
-import buffer.DoubleRingBuffer
-import buffer.ObjectRingBuffer
+import com.machrist.mpmonitoring.metric.mp.buffer.DoubleRingBuffer
+import com.machrist.mpmonitoring.metric.mp.buffer.ObjectRingBuffer
 import java.util.function.DoubleFunction
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -42,9 +42,9 @@ class RollingWindowStatistics : DoubleFunction<WindowStatistic> {
 
         this.statsBuffer = ObjectRingBuffer(size)
 
-        stats.getStatsBuffer().toStream()
-            .skip((stats.statsBuffer.size() - size).toLong())
-            .limit(size.toLong()).forEach { statsBuffer.addToEnd(it) }
+        stats.getStatsBuffer().asSequence()
+            .drop(stats.statsBuffer.size() - size)
+            .take(size).forEach { statsBuffer.addToEnd(it) }
     }
 
     override fun apply(value: Double): WindowStatistic {

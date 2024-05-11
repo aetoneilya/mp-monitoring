@@ -1,4 +1,4 @@
-package buffer
+package com.machrist.mpmonitoring.metric.mp.buffer
 
 import kotlin.math.min
 

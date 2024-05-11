@@ -1,16 +1,15 @@
-package com.machrist.matrixprofile
+package com.machrist.mpmonitoring.metric.mp.matrixprofile
 
-import com.machrist.common.EPS
-import com.machrist.common.forwardFft
-import com.machrist.common.padSize
-import com.machrist.windowstatistic.RollingWindowStatistics
-import com.machrist.windowstatistic.WindowStatistic
+import com.machrist.mpmonitoring.metric.mp.common.EPS
+import com.machrist.mpmonitoring.metric.mp.common.forwardFft
+import com.machrist.mpmonitoring.metric.mp.common.padSize
+import com.machrist.mpmonitoring.metric.mp.windowstatistic.RollingWindowStatistics
+import com.machrist.mpmonitoring.metric.mp.windowstatistic.WindowStatistic
 import java.util.Arrays
-import java.util.stream.Collectors
-import java.util.stream.Stream
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.sqrt
+import kotlin.streams.asSequence
 
 /**
  * Real-time lib.STOMP algorithm
@@ -32,17 +31,17 @@ class Stompi(
     private var matrixProfile: OnlineMatrixProfile
 
     init {
-        this.matrixProfile =
+        matrixProfile =
             BaseOnlineMatrixProfile(
                 Stomp(initialStats, exclusionZone).get()!!,
             )
-        this.history =
+        history =
             initialStats.getStatsBuffer()
-                .toStream()
-                .limit((initialStats.dataSize() - 1).toLong())
-                .collect(Collectors.toList())
+                .asSequence()
+                .take((initialStats.dataSize() - 1))
+                .toMutableList()
         this.historySize = historySize
-        this.exclusionZoneSize =
+        exclusionZoneSize =
             floor(
                 initialStats.windowSize() * exclusionZone + EPS,
             ).toInt()
@@ -62,10 +61,11 @@ class Stompi(
     }
 
     override fun get(): OnlineMatrixProfile {
-        if (this.newPoints > 0) {
-            val winSize: Int = rollingStatistics().windowSize()
-            val newBuffer = Stream.concat(history.stream(), rollingStatistics().getStatsBuffer().toStream()
-                ).toList().toTypedArray()
+        if (newPoints > 0) {
+            val winSize = rollingStatistics().windowSize()
+            val newBuffer =
+                (history.stream().asSequence() + rollingStatistics().getStatsBuffer().asSequence())
+                    .toList().toTypedArray()
 
             val newStats = RollingWindowStatistics(winSize, newBuffer)
             val qIndex = newBuffer.size - rollingStatistics().windowSize() - newPoints + 1
@@ -75,11 +75,19 @@ class Stompi(
             var distProfile: DoubleArray? = null
 
             var newMatrixProfile = matrixProfile.extend(newPoints)
-            if (this.newPoints > 1) {
+            if (newPoints > 1) {
                 val firstQuery: RollingWindowStatistics = newQuery(newBuffer, 0)
                 val firstDistanceProfile =
                     Mass2().apply(
-                        DistanceProfileQuery(newStats, firstQuery, 0, winSize, fft, sqrt = false, norm = false),
+                        DistanceProfileQuery(
+                            data = newStats,
+                            query = firstQuery,
+                            queryIndex = 0,
+                            windowSize = winSize,
+                            dataFft = fft,
+                            sqrt = false,
+                            norm = false,
+                        ),
                     )
                 firstProduct =
                     Arrays.stream(firstDistanceProfile.product)
@@ -88,7 +96,7 @@ class Stompi(
                         .toArray()
             }
             var dropValue = 0.0
-            for (i in 0 until this.newPoints) {
+            for (i in 0 until newPoints) {
                 val startIdx: Int = qIndex + i
                 val query: RollingWindowStatistics = newQuery(newBuffer, startIdx)
                 if (i == 0) {
@@ -158,9 +166,9 @@ class Stompi(
                 newMatrixProfile.leftIndexes?.set(startIdx, minIdx)
                 newMatrixProfile.leftProfile?.set(startIdx, min)
             }
-            if (this.historySize > 0) {
+            if (historySize > 0) {
                 var offset = 0
-                while (history.size + rollingStatistics().getStatsBuffer().size() > this.historySize) {
+                while (history.size + rollingStatistics().getStatsBuffer().size() > historySize) {
                     history.removeAt(0)
                     offset++
                 }
@@ -168,10 +176,10 @@ class Stompi(
                     newMatrixProfile = newMatrixProfile.offset(offset)
                 }
             }
-            this.matrixProfile = newMatrixProfile
+            matrixProfile = newMatrixProfile
         }
-        this.newPoints = 0
-        return this.matrixProfile
+        newPoints = 0
+        return matrixProfile
     }
 
     private fun computeDistance(
@@ -190,11 +198,12 @@ class Stompi(
         stats: Array<WindowStatistic>,
         from: Int,
     ): RollingWindowStatistics {
-        val array: Array<WindowStatistic> =
+        val array =
             stats.asSequence()
                 .drop(from)
                 .take(rollingStatistics().windowSize())
-                .toList().toTypedArray()
+                .toList()
+                .toTypedArray()
 
         return RollingWindowStatistics(
             rollingStatistics().windowSize(),

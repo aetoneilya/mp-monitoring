@@ -1,8 +1,8 @@
-package com.machrist.matrixprofile
+package com.machrist.mpmonitoring.metric.mp.matrixprofile
 
-import com.machrist.common.forwardFft
-import com.machrist.common.inverseFft
-import com.machrist.common.padSize
+import com.machrist.mpmonitoring.metric.mp.common.forwardFft
+import com.machrist.mpmonitoring.metric.mp.common.inverseFft
+import com.machrist.mpmonitoring.metric.mp.common.padSize
 import org.apache.commons.math3.complex.Complex
 import kotlin.math.sqrt
 
