@@ -48,12 +48,12 @@ class RollingWindowStatistics : DoubleFunction<WindowStatistic> {
     }
 
     override fun apply(value: Double): WindowStatistic {
-        var value = value
+        var x = value
         totalDataCount++
 
         if (value.isNaN() || value.isInfinite()) {
             toSkip = windowSize()
-            value = 0.0
+            x = 0.0
         } else {
             toSkip--
         }
@@ -61,19 +61,18 @@ class RollingWindowStatistics : DoubleFunction<WindowStatistic> {
             removeValue(dataBuffer.head())
         }
 
-        dataBuffer.addToEnd(value)
-        addValue(value)
-        val mean = getMean()
-        val populationVariance = getPopulationVariance()
+        dataBuffer.addToEnd(x)
+        addValue(x)
+
         val stat =
             computeStats(
-                value,
-                mean,
-                sqrt(max(0.0, populationVariance)),
+                x,
+                getMean(),
+                max(0.0, getPopulationVariance()),
                 totalDataCount,
                 toSkip > 0,
             )
-        getStatsBuffer().addToEnd(stat)
+        statsBuffer.addToEnd(stat)
         return stat
     }
 
@@ -94,45 +93,29 @@ class RollingWindowStatistics : DoubleFunction<WindowStatistic> {
         n--
     }
 
+    private fun getMean(): Double = k + ex / n
+
+    private fun getPopulationVariance(): Double = sqrt((ex2 - ex * ex / n) / n)
+
     private fun computeStats(
         x: Double,
         mean: Double,
         stdDev: Double,
         id: Long,
         skip: Boolean,
-    ): WindowStatistic {
-        return WindowStatistic(x, mean, stdDev, id, skip)
-    }
+    ): WindowStatistic = WindowStatistic(x, mean, stdDev, id, skip)
 
-    private fun getDataBuffer(): DoubleRingBuffer {
-        return dataBuffer
-    }
+    private fun getDataBuffer(): DoubleRingBuffer = dataBuffer
 
-    fun getStatsBuffer(): ObjectRingBuffer<WindowStatistic> {
-        return statsBuffer
-    }
+    fun getStatsBuffer(): ObjectRingBuffer<WindowStatistic> = statsBuffer
 
-    private fun getMean(): Double {
-        return k + ex / n
-    }
+    fun x(i: Int): Double = this.getStatsBuffer()[i].x
 
-    private fun getPopulationVariance(): Double {
-        return (ex2 - ex * ex / n) / n
-    }
-
-    fun x(i: Int): Double {
-        return this.getStatsBuffer()[i].x
-    }
-
-    fun mean(i: Int): Double {
-        return this.getStatsBuffer()[shiftIndex(i)].mean
-    }
+    fun mean(i: Int): Double = this.getStatsBuffer()[shiftIndex(i)].mean
 
     fun stdDev(i: Int): Double = getStatsBuffer()[shiftIndex(i)].stdDev
 
-    fun skip(i: Int): Boolean {
-        return this.getStatsBuffer()[shiftIndex(i)].skip
-    }
+    fun skip(i: Int): Boolean = this.getStatsBuffer()[shiftIndex(i)].skip
 
     fun isReady(): Boolean = getDataBuffer().isFull()
 

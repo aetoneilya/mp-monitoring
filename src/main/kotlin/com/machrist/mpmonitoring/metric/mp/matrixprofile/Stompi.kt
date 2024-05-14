@@ -9,10 +9,9 @@ import java.util.Arrays
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.sqrt
-import kotlin.streams.asSequence
 
 /**
- * Real-time lib.STOMP algorithm
+ * Real-time STOMP algorithm
  */
 class Stompi(
     initialStats: RollingWindowStatistics,
@@ -41,10 +40,7 @@ class Stompi(
                 .take((initialStats.dataSize() - 1))
                 .toMutableList()
         this.historySize = historySize
-        exclusionZoneSize =
-            floor(
-                initialStats.windowSize() * exclusionZone + EPS,
-            ).toInt()
+        exclusionZoneSize = floor(initialStats.windowSize() * exclusionZone + EPS).toInt()
     }
 
     constructor(
@@ -56,19 +52,18 @@ class Stompi(
 
     override fun update(value: Double) {
         newPoints++
-        history.add(rollingStatistics().getStatsBuffer()[0])
-        super.update(value)
+        history.add(rollingStatistics.getStatsBuffer().head())
+        rollingStatistics.apply(value)
     }
 
     override fun get(): OnlineMatrixProfile {
         if (newPoints > 0) {
-            val winSize = rollingStatistics().windowSize()
+            val winSize = rollingStatistics.windowSize()
             val newBuffer =
-                (history.stream().asSequence() + rollingStatistics().getStatsBuffer().asSequence())
-                    .toList().toTypedArray()
+                (history.asSequence() + rollingStatistics.getStatsBuffer().asSequence()).toList().toTypedArray()
 
             val newStats = RollingWindowStatistics(winSize, newBuffer)
-            val qIndex = newBuffer.size - rollingStatistics().windowSize() - newPoints + 1
+            val qIndex = newBuffer.size - rollingStatistics.windowSize() - newPoints + 1
             val fft = forwardFft(newStats, false, 0, padSize(newBuffer.size))
             var firstProduct: DoubleArray? = null
             var lastProduct: DoubleArray? = null
@@ -102,7 +97,15 @@ class Stompi(
                 if (i == 0) {
                     val distanceProfile =
                         Mass2().apply(
-                            DistanceProfileQuery(newStats, query, 0, winSize, fft, false, false),
+                            DistanceProfileQuery(
+                                data = newStats,
+                                query = query,
+                                queryIndex = 0,
+                                windowSize = winSize,
+                                dataFft = fft,
+                                sqrt = false,
+                                norm = false,
+                            ),
                         )
                     distProfile = distanceProfile.profile
                     lastProduct =
@@ -116,7 +119,7 @@ class Stompi(
                         val temp = lastProduct[j]
                         lastProduct[j] = cache - newBuffer[j - 1].x *
                             dropValue + newBuffer[j + winSize - 1].x *
-                            query.getStatsBuffer().get(winSize - 1).x
+                            query.getStatsBuffer()[winSize - 1].x
                         distProfile!![j] = computeDistance(j, winSize, lastProduct[j], newStats, query)
                         cache = temp
                     }
@@ -168,7 +171,7 @@ class Stompi(
             }
             if (historySize > 0) {
                 var offset = 0
-                while (history.size + rollingStatistics().getStatsBuffer().size() > historySize) {
+                while (history.size + rollingStatistics.getStatsBuffer().size() > historySize) {
                     history.removeAt(0)
                     offset++
                 }
@@ -201,12 +204,12 @@ class Stompi(
         val array =
             stats.asSequence()
                 .drop(from)
-                .take(rollingStatistics().windowSize())
+                .take(rollingStatistics.windowSize())
                 .toList()
                 .toTypedArray()
 
         return RollingWindowStatistics(
-            rollingStatistics().windowSize(),
+            rollingStatistics.windowSize(),
             array,
         )
     }

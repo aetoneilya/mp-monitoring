@@ -40,6 +40,4 @@ fun inverseFft(data: Array<Complex>): Array<Complex> {
     return transformer.transform(data, TransformType.INVERSE)
 }
 
-fun padSize(n: Int): Int {
-    return 2.0.pow(ceil(ln(n.toDouble()) / ln(2.0))).toInt()
-}
+fun padSize(n: Int): Int = 2.0.pow(ceil(ln(n.toDouble()) / ln(2.0))).toInt()

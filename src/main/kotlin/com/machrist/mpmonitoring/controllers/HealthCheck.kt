@@ -1,6 +1,5 @@
 package com.machrist.mpmonitoring.controllers
 
-
 import com.machrist.mpmonitoring.openapi.HealthCheckApi
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController

@@ -15,15 +15,13 @@ class Mass2 : DistanceProfileFunction {
         val n = dsq.data.dataSize()
         val m = dsq.windowSize
         val qIndex = dsq.queryIndex
-        var dataFft = dsq.dataFft
-        if (dataFft == null) {
-            val padSize: Int = padSize(n)
-            dataFft = forwardFft(dsq.data, false, 0, padSize)
-        }
+        val dataFft = dsq.dataFft ?: forwardFft(dsq.data, false, 0, padSize(n))
+
         val skip = dsq.query.dataSize() - (m + qIndex)
         val queryFft = forwardFft(dsq.query, true, skip.toLong(), dataFft.size)
 
         val prod = Array<Complex>(queryFft.size) { queryFft[it].multiply(dataFft[it]) }
+
         val inv = inverseFft(prod)
         val z = DoubleArray(inv.size)
         for (i in inv.indices) {
@@ -31,9 +29,11 @@ class Mass2 : DistanceProfileFunction {
         }
         val meanB = dsq.query.mean(qIndex)
         val stdDevB = dsq.query.stdDev(qIndex)
+
         val dist = DoubleArray(n - m + 1)
-        val shift: Int = m - 1
+        val shift = m - 1
         val sqN = sqrt(n.toDouble())
+
         for (i in shift until n) {
             val meanA = dsq.data.mean(i - shift)
             val stdDevA = dsq.data.stdDev(i - shift)

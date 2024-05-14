@@ -58,7 +58,7 @@ data class DistanceProfileQuery(
     }
 }
 
-data class DistanceProfile(val profile: DoubleArray, val product: DoubleArray?) {
+data class DistanceProfile(val profile: DoubleArray, val product: DoubleArray) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -66,19 +66,14 @@ data class DistanceProfile(val profile: DoubleArray, val product: DoubleArray?) 
         other as DistanceProfile
 
         if (!profile.contentEquals(other.profile)) return false
-        if (product != null) {
-            if (other.product == null) return false
-            if (!product.contentEquals(other.product)) return false
-        } else if (other.product != null) {
-            return false
-        }
+        if (!product.contentEquals(other.product)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = profile.contentHashCode()
-        result = 31 * result + (product?.contentHashCode() ?: 0)
+        result = 31 * result + product.contentHashCode()
         return result
     }
 }

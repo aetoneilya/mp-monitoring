@@ -91,7 +91,6 @@ class MetricStorageClickHouse(
 
             ClickHouseDataStreamFactory.getInstance()
                 .createPipedOutputStream(config).use { stream ->
-                    // in async mode, which is default, execution happens in a worker thread
                     future = request.data(stream.inputStream).execute()
 
                     val processor =

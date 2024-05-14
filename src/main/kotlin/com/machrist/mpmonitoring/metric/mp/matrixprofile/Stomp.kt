@@ -37,21 +37,17 @@ class Stomp : BaseMatrixProfileAlgorithm<MatrixProfile> {
             exclusionZoneSize: Int,
             distFunc: DistanceProfileFunction,
         ): MatrixProfile {
-            var query: RollingWindowStatistics? = query
-            var exclusionZone = exclusionZone
-            var exclusionZoneSize = exclusionZoneSize
+            var joinQuery: RollingWindowStatistics? = query
             val windowSize: Int = ts.windowSize()
 
-            val isJoin = query != null
+            val isJoin = joinQuery != null
             if (!isJoin) {
-                query = ts
-            } else {
-                exclusionZone = 0.0
-                exclusionZoneSize = 0
+                joinQuery = ts
             }
-            val exZone = exclusionZoneSize
+
+            val exZone = if (isJoin) 0 else exclusionZoneSize
             val dataSize: Int = ts.dataSize()
-            val querySize: Int = query!!.dataSize()
+            val querySize: Int = joinQuery!!.dataSize()
             val mpSize = dataSize - windowSize + 1
             val numQueries = querySize - windowSize + 1
 
@@ -90,14 +86,14 @@ class Stomp : BaseMatrixProfileAlgorithm<MatrixProfile> {
             }
 
             val fftTs = forwardFft(ts, false, 0, padSize(dataSize))
-            val nn = distFunc.apply(DistanceProfileQuery(ts, query, 0, windowSize, fftTs))
+            val nn = distFunc.apply(DistanceProfileQuery(ts, joinQuery, 0, windowSize, fftTs))
             var rnn = nn
 
             if (isJoin) {
-                val fftQuery = forwardFft(query, false, 0, padSize(querySize))
+                val fftQuery = forwardFft(joinQuery, false, 0, padSize(querySize))
                 rnn =
                     distFunc.apply(
-                        DistanceProfileQuery(query, ts, 0, windowSize, fftQuery),
+                        DistanceProfileQuery(joinQuery, ts, 0, windowSize, fftQuery),
                     )
             }
 
@@ -108,7 +104,7 @@ class Stomp : BaseMatrixProfileAlgorithm<MatrixProfile> {
                 Arrays.stream(nn.product).skip((windowSize - 1).toLong())
                     .limit(mpSize.toLong()).toArray()
             val distanceProfile: DoubleArray = nn.profile
-            var dropValue: Double = query.x(0)
+            var dropValue: Double = joinQuery.x(0)
 
             for (i in 0 until numQueries) {
                 if (i > 0) {
@@ -119,8 +115,8 @@ class Stomp : BaseMatrixProfileAlgorithm<MatrixProfile> {
                             accumulatedProducts[0] = prod
                         }
 
-                        val a = (prod - windowSize * ts.mean(j - 1) * query.mean(i))
-                        val b = (ts.stdDev(j - 1) * query.stdDev(i))
+                        val a = (prod - windowSize * ts.mean(j - 1) * joinQuery.mean(i))
+                        val b = (ts.stdDev(j - 1) * joinQuery.stdDev(i))
                         val dist = 2 * (windowSize - a / b)
                         distanceProfile[j - 1] = sqrt(dist)
                         if (j == mpSize) {
@@ -130,7 +126,7 @@ class Stomp : BaseMatrixProfileAlgorithm<MatrixProfile> {
                         val newProd =
                             prevProd -
                                 ts.x(j - 1) * dropValue +
-                                ts.x(j + windowSize - 1) * query.x(i + windowSize - 1)
+                                ts.x(j + windowSize - 1) * joinQuery.x(i + windowSize - 1)
 
                         accumulatedProducts[j] = newProd
                         prevProd = currProd
@@ -138,7 +134,7 @@ class Stomp : BaseMatrixProfileAlgorithm<MatrixProfile> {
                     }
                 }
 
-                dropValue = query.x(i)
+                dropValue = joinQuery.x(i)
 
                 for (k in 0 until mpSize) {
                     if ((exZone > 0 && abs((k - i).toDouble()) <= exZone) || (ts.stdDev(k) < EPS) || ts.skip(k) ||
@@ -172,7 +168,7 @@ class Stomp : BaseMatrixProfileAlgorithm<MatrixProfile> {
 
             return BaseMatrixProfile(
                 windowSize,
-                exclusionZone,
+                if (isJoin) 0.0 else exclusionZone,
                 matrixProfile,
                 profileIndex,
                 rightMatrixProfile,
