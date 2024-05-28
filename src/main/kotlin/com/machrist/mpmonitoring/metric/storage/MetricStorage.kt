@@ -6,7 +6,10 @@ import java.time.OffsetDateTime
 interface MetricStorage {
     fun createProject(projectName: String)
 
-    fun projectExists(projectName: String): Boolean
+    fun createMetricTable(
+        projectName: String,
+        sensorName: String,
+    )
 
     fun storeMetric(
         projectName: String,

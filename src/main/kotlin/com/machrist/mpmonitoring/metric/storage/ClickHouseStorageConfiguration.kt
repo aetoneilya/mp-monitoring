@@ -17,5 +17,5 @@ class ClickHouseStorageConfiguration {
 
     @Bean
     fun clickHouseNodes(): ClickHouseNodes =
-        ClickHouseNodes.of("http://$username:$password@$host:$port/$database")
+        ClickHouseNodes.of("http://$username:$password@$host:$port")
 }

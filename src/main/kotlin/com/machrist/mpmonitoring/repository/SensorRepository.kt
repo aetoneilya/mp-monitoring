@@ -2,14 +2,11 @@ package com.machrist.mpmonitoring.repository
 
 import com.machrist.mpmonitoring.model.Sensor
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-
 
 @Repository
 interface SensorRepository : JpaRepository<Sensor, Int> {
-//    @Query(
+    //    @Query(
 //        value = """
 //        SELECT s
 //            FROM Sensor s
@@ -20,5 +17,5 @@ interface SensorRepository : JpaRepository<Sensor, Int> {
 //    """
 //    )
 //    fun findByLabels(@Param("labelMap") labelMap: List<List<String>>): List<Sensor>
-
+    fun countDistinctByStorageSensorName(sensorName: String): Long
 }

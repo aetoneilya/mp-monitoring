@@ -27,9 +27,11 @@ class MetricsController(
         getMetricsRequest: GetMetricsRequest,
     ): ResponseEntity<GetMetricsResponse> =
         with(getMetricsRequest) {
-            val project = findProjectOrThrow(projectName)
-
-            val sensors = metricService.findSensorsByLabels(metadata) ?: throw RuntimeException("Not found")
+            val sensors =
+                metricService.findSensorsByLabels(metadata) ?: return ResponseEntity.ok(
+                    GetMetricsResponse
+                        (emptyList()),
+                )
 
             val timeSeriesBySensor = metricService.findMetrics(sensors, toOffsetDateTime(from), toOffsetDateTime(to))
 
@@ -44,9 +46,7 @@ class MetricsController(
             return ResponseEntity.ok(GetMetricsResponse(metricsDto))
         }
 
-    override suspend fun getMetrics(
-        projectName: String
-    ): ResponseEntity<GetMetricsResponse> {
+    override suspend fun getMetrics(projectName: String): ResponseEntity<GetMetricsResponse> {
         return super.getMetrics(projectName)
     }
 
@@ -61,7 +61,7 @@ class MetricsController(
         val metadata = storeMetricsRequest.metrics.metadata
         val sensor =
             metricService.findSensorsByLabels(metadata)?.minByOrNull { it.labels.count() }
-                ?: metricService.createSensor(project, metadata)
+                ?: metricService.createMetric(project, metadata)
 
         log.info("found sensor: $sensor")
 

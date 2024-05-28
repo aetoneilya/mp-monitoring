@@ -23,25 +23,28 @@ class MetricStorageClickHouse(
 
     companion object {
         const val CREATE_TABLE_QUERY = """
-                                CREATE TABLE :table_name
+                                CREATE TABLE IF NOT EXISTS :database_name.:table_name
                                 (
-                                    `sensor` LowCardinality(String),
                                     `time` DateTime CODEC(Delta(4), ZSTD(1)),
                                     `value` Double  CODEC(Gorilla)
                                 )
                                 ENGINE = ReplacingMergeTree
                                 PARTITION BY toYYYYMM(time)
-                                ORDER BY (sensor, time)
+                                ORDER BY (time)
                                 SETTINGS index_granularity = 8192
                                 """
+
+        const val CREATE_DATABASE_QUERY = """
+           CREATE DATABASE IF NOT EXISTS :database_name
+        """
 
         const val TABLE_EXISTS = """
                                 EXISTS :table_name
                                 """
 
         const val GET_TIME_SERIES = """
-                                SELECT time, value FROM :table_name 
-                                WHERE sensor = :sensor AND time BETWEEN :from AND :to
+                                SELECT time, value FROM :database_name.:table_name
+                                 WHERE time BETWEEN :from AND :to
                                 """
     }
 
@@ -50,22 +53,29 @@ class MetricStorageClickHouse(
         ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).use { client ->
             client.read(clickHouseNodes)
                 .format(ClickHouseFormat.RowBinaryWithNamesAndTypes)
-                .query(CREATE_TABLE_QUERY)
-                .params(mapOf("table_name" to projectName))
+                .query(CREATE_DATABASE_QUERY)
+                .params(mapOf("database_name" to projectName))
                 .executeAndWait()
         }
     }
 
-    override fun projectExists(projectName: String): Boolean {
-        log.info("checking project existence $projectName")
-        val result =
-            ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).read(clickHouseNodes)
+    override fun createMetricTable(
+        projectName: String,
+        sensorName: String,
+    ) {
+        log.info("creating metric table $projectName $sensorName")
+        ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).use { client ->
+            client.read(clickHouseNodes)
                 .format(ClickHouseFormat.RowBinaryWithNamesAndTypes)
-                .query(TABLE_EXISTS)
-                .params(mapOf("table_name" to projectName))
+                .query(CREATE_TABLE_QUERY)
+                .params(
+                    mapOf(
+                        "table_name" to sensorName,
+                        "database_name" to projectName,
+                    ),
+                )
                 .executeAndWait()
-
-        return result.firstRecord().getValue(0).asInteger() > 0
+        }
     }
 
     override fun storeMetric(
@@ -74,16 +84,16 @@ class MetricStorageClickHouse(
         timeSeries: TimeSeries,
     ) {
         val columns =
-            ClickHouseColumn.parse("`sensor` LowCardinality(String), `time` DateTime CODEC(Delta(4), ZSTD(1)),  `value` Double")
+            ClickHouseColumn.parse("`time` DateTime CODEC(Delta(4), ZSTD(1)), `value` Double")
 
-        log.info("store metrics to $projectName")
+        log.info("store metrics to $projectName.$sensorName")
 
         ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).use { client ->
             val request =
                 client
                     .read(clickHouseNodes)
                     .write()
-                    .table(projectName)
+                    .table("$projectName.$sensorName")
                     .format(ClickHouseFormat.RowBinary)
 
             val config: ClickHouseConfig = request.config
@@ -107,9 +117,8 @@ class MetricStorageClickHouse(
                     val values = columns.map { it.newValue(config) }
                     val serializers = processor.getSerializers(config, columns)
                     for (datapoint in timeSeries.timeSeriesPoints) {
-                        serializers[0].serialize(values[0].update(sensorName), stream)
-                        serializers[1].serialize(values[1].update(datapoint.dateTime), stream)
-                        serializers[2].serialize(values[2].update(datapoint.value), stream)
+                        serializers[0].serialize(values[0].update(datapoint.dateTime), stream)
+                        serializers[1].serialize(values[1].update(datapoint.value), stream)
                     }
                 }
 
@@ -137,8 +146,8 @@ class MetricStorageClickHouse(
                     .query(GET_TIME_SERIES)
                     .params(
                         mapOf<String, String>(
-                            "table_name" to projectName,
-                            "sensor" to "'$sensorName'",
+                            "database_name" to projectName,
+                            "table_name" to sensorName,
                             "from" to fromArgument,
                             "to" to toArgument,
                         ),

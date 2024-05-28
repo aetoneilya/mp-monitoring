@@ -10,7 +10,6 @@ import com.machrist.mpmonitoring.repository.LabelRepository
 import com.machrist.mpmonitoring.repository.SensorRepository
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
-import java.util.UUID
 
 @Service
 class MetricService(
@@ -19,19 +18,26 @@ class MetricService(
     val labelsRepository: LabelRepository,
 ) {
     fun findSensorsByLabels(metadata: Map<String, String>) =
-        metadata.asSequence()
-            .flatMap { (k, v) -> labelsRepository.findByLabelNameAndLabelValue(k, v) }
+        labelsRepository.findByLabelNameIsInAndLabelValueIsIn(metadata.keys, metadata.values)
             .groupBy { it.sensor }
-            .filter { labels -> labels.value.all { metadata[it.labelName] == it.labelValue } }
+            .filterValues { it.size == metadata.size }
+            .filter { sensorToLabels -> sensorToLabels.value.all { metadata[it.labelName] == it.labelValue } }
             .mapNotNull { it.key }
             .toSet()
             .emptyToNull()
 
-    fun createSensor(
+    fun createMetric(
         project: Project,
         metadata: Map<String, String>,
     ): Sensor {
-        val sensor = Sensor(project = project, storageSensorName = UUID.randomUUID().toString().replace("-", ""))
+        val name = metadata["name"] ?: metadata.entries.first().let { "${it.key}_${it.value}" }
+        val numberPostfix =
+            sensorRepository.countDistinctByStorageSensorName(name)
+                .let { if (it > 0) "_$it" else "" }
+
+        val storageSensorName = "$name$numberPostfix"
+
+        val sensor = Sensor(project = project, storageSensorName = storageSensorName)
         val labels = metadata.map { Label(sensor = sensor, labelName = it.key, labelValue = it.value) }
         sensorRepository.save(sensor)
         labelsRepository.saveAll(labels)
@@ -39,7 +45,7 @@ class MetricService(
     }
 
     fun findMetrics(
-        sensors: Set<Sensor>,
+        sensors: Iterable<Sensor>,
         from: OffsetDateTime?,
         to: OffsetDateTime?,
     ): Map<Sensor, TimeSeries> {
@@ -51,6 +57,10 @@ class MetricService(
         return timeSeriesBySensor
     }
 
+    fun findAvailableMetrics(): List<Sensor> {
+        return sensorRepository.findAll()
+    }
+
     /**
      * returns created or existing sensor and number of processed metric values
      */
@@ -59,6 +69,7 @@ class MetricService(
         sensor: Sensor,
         timeSeries: TimeSeries,
     ): Pair<Sensor, Long> {
+        metricStorage.createMetricTable(sensor.project!!.name, sensor.storageSensorName)
         metricStorage.storeMetric(sensor.project!!.name, sensor.storageSensorName, timeSeries)
         return Pair(sensor, timeSeries.size())
     }

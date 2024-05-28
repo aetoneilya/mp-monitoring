@@ -13,9 +13,8 @@ class ProjectService(
     fun getProject(name: String): Project? = projectRepository.findByName(name)
 
     fun createProject(project: Project): Project {
-        if (!metricStorage.projectExists(project.name)) {
-            metricStorage.createProject(project.name)
-        }
+        metricStorage.createProject(project.name)
+
         return projectRepository.findByName(project.name) ?: projectRepository.save(project)
     }
 }

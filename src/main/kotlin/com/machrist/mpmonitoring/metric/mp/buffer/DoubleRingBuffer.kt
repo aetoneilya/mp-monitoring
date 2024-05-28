@@ -2,17 +2,23 @@ package com.machrist.mpmonitoring.metric.mp.buffer
 
 import kotlin.math.min
 
-class DoubleRingBuffer : RingBuffer<Double> {
+class DoubleRingBuffer : AbstractRingBuffer<Double> {
     private val buff: DoubleArray
 
     constructor(size: Int) : super(size) {
         this.buff = DoubleArray(size)
     }
 
-    constructor(buffer: DoubleRingBuffer) : super(buffer.size()) {
+    constructor(buffer: DoubleRingBuffer) : super(buffer.size) {
         buff = buffer.copy()
-        mCnt = buff.size
-        mEnd = mCnt - 1
+        count = buff.size
+        end = count - 1
+    }
+
+    constructor(buffer: RingBuffer<Double>) : super(buffer.size) {
+        buff = DoubleArray(buffer.size) { buffer[it] }
+        count = buff.size
+        end = count - 1
     }
 
     override fun set(
@@ -23,10 +29,10 @@ class DoubleRingBuffer : RingBuffer<Double> {
     }
 
     override fun get(index: Int): Double {
-        if (index >= mSize) {
+        if (index >= bufferSize) {
             throw IndexOutOfBoundsException()
         }
-        val ix = (mStart + index) % mSize
+        val ix = (start + index) % bufferSize
         return buff[ix]
     }
 
@@ -37,7 +43,7 @@ class DoubleRingBuffer : RingBuffer<Double> {
     }
 
     private fun copy(): DoubleArray {
-        val copyArray = DoubleArray(min(mCnt, mSize))
+        val copyArray = DoubleArray(min(count, bufferSize))
         copy(copyArray)
         return copyArray
     }

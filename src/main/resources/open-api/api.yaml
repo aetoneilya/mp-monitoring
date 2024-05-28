@@ -629,7 +629,8 @@ paths:
                   description: The currently selected Metric option.
                 payload:
                   type: object
-                  properties: { }
+                  additionalProperties:
+                    type: string
                   description: >-
                     The currently selected/entered payload options and values.
                     Key is the name of the payload, and value is the value of
@@ -767,7 +768,8 @@ paths:
                   description: Current metric.
                 payload:
                   type: object
-                  properties: { }
+                  additionalProperties:
+                    type: string
                   description: Current payload.
                 name:
                   type: string

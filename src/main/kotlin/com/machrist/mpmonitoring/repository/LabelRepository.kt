@@ -10,4 +10,9 @@ interface LabelRepository : JpaRepository<Label, Int> {
         labelName: String,
         labelValue: String,
     ): List<Label>
+
+    fun findByLabelNameIsInAndLabelValueIsIn(
+        labelName: Collection<String>,
+        labelValue: Collection<String>,
+    ): List<Label>
 }

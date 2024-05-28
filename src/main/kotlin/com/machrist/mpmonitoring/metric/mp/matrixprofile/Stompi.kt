@@ -16,7 +16,7 @@ import kotlin.math.sqrt
 class Stompi(
     initialStats: RollingWindowStatistics,
     historySize: Int,
-    exclusionZone: Double,
+    exclusionZone: Double = 0.5,
 ) :
     MatrixProfileAlgorithm<OnlineMatrixProfile> {
     private val rollingStatistics = RollingWindowStatistics(initialStats, 1)
@@ -171,7 +171,7 @@ class Stompi(
             }
             if (historySize > 0) {
                 var offset = 0
-                while (history.size + rollingStatistics.getStatsBuffer().size() > historySize) {
+                while (history.size + rollingStatistics.getStatsBuffer().size > historySize) {
                     history.removeAt(0)
                     offset++
                 }

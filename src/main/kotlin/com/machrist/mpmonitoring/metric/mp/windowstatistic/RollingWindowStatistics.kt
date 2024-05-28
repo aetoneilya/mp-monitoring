@@ -2,13 +2,14 @@ package com.machrist.mpmonitoring.metric.mp.windowstatistic
 
 import com.machrist.mpmonitoring.metric.mp.buffer.DoubleRingBuffer
 import com.machrist.mpmonitoring.metric.mp.buffer.ObjectRingBuffer
+import com.machrist.mpmonitoring.metric.mp.buffer.RingBuffer
 import java.util.function.DoubleFunction
 import kotlin.math.max
 import kotlin.math.sqrt
 
 class RollingWindowStatistics : DoubleFunction<WindowStatistic> {
-    private var dataBuffer: DoubleRingBuffer
-    private var statsBuffer: ObjectRingBuffer<WindowStatistic>
+    private var dataBuffer: RingBuffer<Double>
+    private var statsBuffer: RingBuffer<WindowStatistic>
     private var n = 0
     private var k = 0.0
     private var ex = 0.0
@@ -43,7 +44,7 @@ class RollingWindowStatistics : DoubleFunction<WindowStatistic> {
         this.statsBuffer = ObjectRingBuffer(size)
 
         stats.getStatsBuffer().asSequence()
-            .drop(stats.statsBuffer.size() - size)
+            .drop(stats.statsBuffer.size - size)
             .take(size).forEach { statsBuffer.addToEnd(it) }
     }
 
@@ -105,9 +106,9 @@ class RollingWindowStatistics : DoubleFunction<WindowStatistic> {
         skip: Boolean,
     ): WindowStatistic = WindowStatistic(x, mean, stdDev, id, skip)
 
-    private fun getDataBuffer(): DoubleRingBuffer = dataBuffer
+    private fun getDataBuffer(): RingBuffer<Double> = dataBuffer
 
-    fun getStatsBuffer(): ObjectRingBuffer<WindowStatistic> = statsBuffer
+    fun getStatsBuffer(): RingBuffer<WindowStatistic> = statsBuffer
 
     fun x(i: Int): Double = this.getStatsBuffer()[i].x
 

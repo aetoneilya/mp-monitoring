@@ -2,13 +2,13 @@ package com.machrist.mpmonitoring.metric.mp.buffer
 
 class ObjectRingBuffer<T>(
     buffSize: Int,
-) : RingBuffer<T>(buffSize) {
+) : AbstractRingBuffer<T>(buffSize) {
     @Suppress("UNCHECKED_CAST")
     private val buff: Array<T?> = arrayOfNulls<Any?>(buffSize) as Array<T?>
 
     init {
-        mCnt = buff.size
-        mEnd = mCnt - 1
+        count = buff.size
+        end = count - 1
     }
 
     override fun set(
@@ -19,10 +19,10 @@ class ObjectRingBuffer<T>(
     }
 
     override operator fun get(index: Int): T {
-        if (index >= mSize) {
+        if (index >= bufferSize) {
             throw IndexOutOfBoundsException()
         }
-        val ix = (mStart + index) % mSize
+        val ix = (start + index) % bufferSize
         return buff[ix]!!
     }
 }

@@ -26,8 +26,8 @@ open class Label(
     @JoinColumn(name = "sensor_id")
     open var sensor: Sensor?,
     @NotNull
-    @Column(name = "label_name", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "label_name", nullable = false)
     open var labelName: String,
-    @Column(name = "label_value", length = Integer.MAX_VALUE)
+    @Column(name = "label_value")
     open var labelValue: String,
 )

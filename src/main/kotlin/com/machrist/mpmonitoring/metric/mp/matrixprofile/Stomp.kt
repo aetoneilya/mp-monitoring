@@ -9,18 +9,16 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.sqrt
 
-class Stomp : BaseMatrixProfileAlgorithm<MatrixProfile> {
-    constructor(
-        rollingWindowStatistics: RollingWindowStatistics,
-        exclusionZone: Double,
-    ) : super(rollingWindowStatistics, exclusionZone)
-
-    constructor(rollingWindowStatistics: RollingWindowStatistics) : super(
-        rollingWindowStatistics,
-        0.5,
-    )
+class Stomp(
+    private val rollingStatistics: RollingWindowStatistics,
+    private val exclusionZone: Double = 0.5,
+) : MatrixProfileAlgorithm<MatrixProfile> {
+    private val exclusionZoneSize: Int =
+        floor(rollingStatistics.windowSize() * exclusionZone + EPS).toInt()
 
     constructor(windowSize: Int, bufferSize: Int) : this(RollingWindowStatistics(windowSize, bufferSize))
+
+    override fun rollingStatistics(): RollingWindowStatistics = rollingStatistics
 
     override fun get(): MatrixProfile? {
         if (isReady()) {

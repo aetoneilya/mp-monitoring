@@ -5,6 +5,7 @@ import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
 import java.util.*
 
+
 @Converter(autoApply = true)
 class ChannelTypePostgresConverter : AttributeConverter<ChannelType, String> {
     override fun convertToDatabaseColumn(attribute: ChannelType?): String {

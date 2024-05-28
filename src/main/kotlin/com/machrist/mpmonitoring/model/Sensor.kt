@@ -31,4 +31,6 @@ open class Sensor(
     open var labels: MutableSet<Label> = mutableSetOf(),
 ) {
     fun buildLabelsMap() = labels.associateBy({ it.labelName }, { it.labelValue })
+
+    fun findName() = labels.find { it.labelName == "name" }?.labelValue ?: storageSensorName
 }
