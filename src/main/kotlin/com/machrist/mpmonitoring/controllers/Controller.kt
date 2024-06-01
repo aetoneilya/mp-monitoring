@@ -1,7 +1,7 @@
 package com.machrist.mpmonitoring.controllers
 
 import com.machrist.mpmonitoring.common.logger
-import com.machrist.mpmonitoring.metric.MetricService
+import com.machrist.mpmonitoring.domain.MetricService
 import com.machrist.mpmonitoring.metric.storage.MetricStorage
 import com.machrist.mpmonitoring.repository.LabelRepository
 import org.springframework.web.bind.annotation.RestController
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 class Controller(
     val metricStorage: MetricStorage,
     val metricService: MetricService,
-    val labelRepository: LabelRepository
+    val labelRepository: LabelRepository,
 ) {
     val log by logger()
 

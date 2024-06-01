@@ -9,6 +9,8 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.SequenceGenerator
 import jakarta.persistence.Table
 import jakarta.validation.constraints.NotNull
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 import java.time.Instant
 
 @Entity
@@ -18,13 +20,30 @@ open class User(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_id_gen")
     @SequenceGenerator(name = "users_id_gen", schema = "monitoring", sequenceName = "users_seq", allocationSize = 1)
     @Column(name = "id", nullable = false)
-    open var id: Int?,
+    open var id: Int? = null,
     @NotNull
-    @Column(name = "username", nullable = false, length = Integer.MAX_VALUE)
-    open var username: String?,
+    @Column(name = "login", nullable = false)
+    open var login: String,
+    @NotNull
+    @Column(name = "password", nullable = false)
+    open var passwordHash: String,
     @NotNull
     @Column(name = "created_at", nullable = false)
-    open var createdAt: Instant?,
+    open var createdAt: Instant = Instant.now(),
     @OneToMany(mappedBy = "user")
-    open var userProjectRights: MutableSet<UserProjectRight>,
-)
+    open var userProjectRights: MutableSet<UserProjectRight> = mutableSetOf(),
+) : UserDetails {
+    override fun getAuthorities() = listOf(SimpleGrantedAuthority("ROLE_USER"))
+
+    override fun getPassword() = passwordHash
+
+    override fun getUsername() = login
+
+    override fun isAccountNonExpired() = true
+
+    override fun isAccountNonLocked() = true
+
+    override fun isCredentialsNonExpired() = true
+
+    override fun isEnabled() = true
+}

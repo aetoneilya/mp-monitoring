@@ -4,5 +4,5 @@ import java.time.OffsetDateTime
 
 data class TimeSeriesDataPoint(
     val dateTime: OffsetDateTime,
-    val value: Double
+    val value: Double,
 )

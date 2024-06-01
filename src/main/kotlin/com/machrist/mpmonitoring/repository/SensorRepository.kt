@@ -17,5 +17,7 @@ interface SensorRepository : JpaRepository<Sensor, Int> {
 //    """
 //    )
 //    fun findByLabels(@Param("labelMap") labelMap: List<List<String>>): List<Sensor>
-    fun countDistinctByStorageSensorName(sensorName: String): Long
+    fun countDistinctBySensorName(sensorName: String): Long
+
+    fun findBySensorName(storageSensorName: String): Sensor?
 }

@@ -15,4 +15,9 @@ interface LabelRepository : JpaRepository<Label, Int> {
         labelName: Collection<String>,
         labelValue: Collection<String>,
     ): List<Label>
+
+    fun findLabelByLabelNameAndLabelValue(
+        labelName: String,
+        labelValue: String
+    ) : Label?
 }

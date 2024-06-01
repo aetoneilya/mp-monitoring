@@ -23,6 +23,7 @@ class ObjectRingBuffer<T>(
             throw IndexOutOfBoundsException()
         }
         val ix = (start + index) % bufferSize
+
         return buff[ix]!!
     }
 }

@@ -2,18 +2,17 @@ package com.machrist.mpmonitoring.controllers
 
 import com.machrist.mpmonitoring.common.logger
 import com.machrist.mpmonitoring.common.toOffsetDateTime
-import com.machrist.mpmonitoring.metric.MetricService
-import com.machrist.mpmonitoring.metric.ProjectService
+import com.machrist.mpmonitoring.domain.MetricService
+import com.machrist.mpmonitoring.domain.ProjectService
 import com.machrist.mpmonitoring.openapi.MetricsApi
 import com.machrist.mpmonitoring.openapi.dto.GetMetricsRequest
 import com.machrist.mpmonitoring.openapi.dto.GetMetricsResponse
 import com.machrist.mpmonitoring.openapi.dto.MetricDto
 import com.machrist.mpmonitoring.openapi.dto.StoreMetricsRequest
 import com.machrist.mpmonitoring.openapi.dto.StoreMetricsResponse
-import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.servlet.resource.NoResourceFoundException
+import org.springframework.web.reactive.resource.NoResourceFoundException
 
 @RestController
 class MetricsController(
@@ -79,5 +78,5 @@ class MetricsController(
 
     private fun findProjectOrThrow(projectName: String) =
         projectService.getProject(projectName)
-            ?: throw NoResourceFoundException(HttpMethod.POST, "project/$projectName")
+            ?: throw NoResourceFoundException("project/$projectName")
 }

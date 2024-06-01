@@ -1,4 +1,4 @@
-package com.machrist.mpmonitoring.metric
+package com.machrist.mpmonitoring.domain
 
 import com.machrist.mpmonitoring.common.emptyToNull
 import com.machrist.mpmonitoring.metric.model.TimeSeries
@@ -8,6 +8,7 @@ import com.machrist.mpmonitoring.model.Project
 import com.machrist.mpmonitoring.model.Sensor
 import com.machrist.mpmonitoring.repository.LabelRepository
 import com.machrist.mpmonitoring.repository.SensorRepository
+import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 
@@ -26,24 +27,29 @@ class MetricService(
             .toSet()
             .emptyToNull()
 
+    fun findSensorsByName(name: String) =
+         sensorRepository.findBySensorName(name) ?: throw IllegalArgumentException("No label with name $name " +
+                 "found")
+
     fun createMetric(
         project: Project,
         metadata: Map<String, String>,
     ): Sensor {
         val name = metadata["name"] ?: metadata.entries.first().let { "${it.key}_${it.value}" }
         val numberPostfix =
-            sensorRepository.countDistinctByStorageSensorName(name)
+            sensorRepository.countDistinctBySensorName(name)
                 .let { if (it > 0) "_$it" else "" }
 
         val storageSensorName = "$name$numberPostfix"
 
-        val sensor = Sensor(project = project, storageSensorName = storageSensorName)
+        val sensor = Sensor(project = project, sensorName = storageSensorName)
         val labels = metadata.map { Label(sensor = sensor, labelName = it.key, labelValue = it.value) }
         sensorRepository.save(sensor)
         labelsRepository.saveAll(labels)
         return sensor
     }
 
+    
     fun findMetrics(
         sensors: Iterable<Sensor>,
         from: OffsetDateTime?,
@@ -52,7 +58,7 @@ class MetricService(
         val timeSeriesBySensor: MutableMap<Sensor, TimeSeries> = mutableMapOf()
         for (sensor in sensors) {
             timeSeriesBySensor[sensor] =
-                metricStorage.getMetric(sensor.project!!.name, sensor.storageSensorName, from, to)
+                metricStorage.getMetric(sensor.project!!.name, sensor.sensorName, from, to)
         }
         return timeSeriesBySensor
     }
@@ -69,8 +75,8 @@ class MetricService(
         sensor: Sensor,
         timeSeries: TimeSeries,
     ): Pair<Sensor, Long> {
-        metricStorage.createMetricTable(sensor.project!!.name, sensor.storageSensorName)
-        metricStorage.storeMetric(sensor.project!!.name, sensor.storageSensorName, timeSeries)
+        metricStorage.createMetricTable(sensor.project!!.name, sensor.sensorName)
+        metricStorage.storeMetric(sensor.project!!.name, sensor.sensorName, timeSeries)
         return Pair(sensor, timeSeries.size())
     }
 }

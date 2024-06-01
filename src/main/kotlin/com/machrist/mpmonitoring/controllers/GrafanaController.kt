@@ -1,7 +1,8 @@
 package com.machrist.mpmonitoring.controllers
 
 import com.machrist.mpmonitoring.common.logger
-import com.machrist.mpmonitoring.metric.MetricService
+import com.machrist.mpmonitoring.domain.MetricService
+import com.machrist.mpmonitoring.metric.mp.MatrixProfileService
 import com.machrist.mpmonitoring.model.Label
 import com.machrist.mpmonitoring.model.Sensor
 import com.machrist.mpmonitoring.openapi.AdHocFiltersApi
@@ -24,11 +25,17 @@ import com.machrist.mpmonitoring.openapi.dto.DataframeFieldsInner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.springframework.http.ResponseEntity
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 
 @RestController
-class GrafanaController(private val metricService: MetricService) : GrafanaApi, AdHocFiltersApi, VariableApi {
+class GrafanaController(
+    private val metricService: MetricService,
+    private val matrixProfileService: MatrixProfileService,
+) : GrafanaApi,
+    AdHocFiltersApi,
+    VariableApi {
     val log by logger()
 
     override fun apiEndpointsListMetricPayloadOptions(
@@ -65,15 +72,7 @@ class GrafanaController(private val metricService: MetricService) : GrafanaApi, 
             metrics.map {
                 ApiEndpointsListMetrics200ResponseInner(
                     value = it.findName(),
-                    payloads =
-                        if (selected.contains(it)) {
-                            mapLabelsToGrafanaModel(
-                                it.labels,
-                                selected.filterNotNull(),
-                            )
-                        } else {
-                            emptyList()
-                        },
+                    payloads = mapLabelsToGrafanaModel(it.labels, selected.filterNotNull()),
                 )
             }
         return ResponseEntity.ok(result.asFlow())
@@ -98,29 +97,30 @@ class GrafanaController(private val metricService: MetricService) : GrafanaApi, 
         }
     }
 
+    @Transactional
     override fun apiEndpointsQuery(
         apiEndpointsQueryRequest: ApiEndpointsQueryRequest,
     ): ResponseEntity<Flow<ApiEndpointsQuery200ResponseInner>> {
         log.info("apiEndpointsQuery request=$apiEndpointsQueryRequest")
+        val from = apiEndpointsQueryRequest.range?.from
+        val to = apiEndpointsQueryRequest.range?.to
+        val targets = apiEndpointsQueryRequest.targets
+
+        val sensor = metricService.findSensorsByName(targets?.first()!!.target)
+
+        val metrics = metricService.findMetrics(listOf(sensor), from, to)
 
         val result =
             listOf(
                 ApiEndpointsQuery200ResponseInner(
-                    target = "upper_25",
+                    target = targets.first().target,
                     datapoints =
-                        listOf(
-                            listOf(BigDecimal.valueOf(12), BigDecimal.valueOf(1557385724416)),
-                            listOf(BigDecimal.valueOf(13), BigDecimal.valueOf(1557385725416)),
-                            listOf(BigDecimal.valueOf(4), BigDecimal.valueOf(1557385726416)),
-                            listOf(BigDecimal.valueOf(24.4), BigDecimal.valueOf(1557385727416)),
-                            listOf(BigDecimal.valueOf(15), BigDecimal.valueOf(1557385728416)),
-                            listOf(BigDecimal.valueOf(12), BigDecimal.valueOf(1557385729416)),
-                            listOf(BigDecimal.valueOf(7), BigDecimal.valueOf(1557385730416)),
-                            listOf(BigDecimal.valueOf(6), BigDecimal.valueOf(1557385731416)),
-                            listOf(BigDecimal.valueOf(17), BigDecimal.valueOf(1557385732416)),
-                            listOf(BigDecimal.valueOf(12), BigDecimal.valueOf(1557385733416)),
-                            listOf(BigDecimal.valueOf(3), BigDecimal.valueOf(1557385734416)),
-                        ),
+                        metrics[sensor]?.timeSeriesPoints?.map { metric ->
+                            listOf(
+                                BigDecimal(metric.value),
+                                BigDecimal(metric.dateTime.toInstant().toEpochMilli()),
+                            )
+                        } ?: emptyList(),
                 ),
             )
 

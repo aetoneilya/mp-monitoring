@@ -1,4 +1,4 @@
-package com.machrist.mpmonitoring.metric
+package com.machrist.mpmonitoring.domain
 
 import com.machrist.mpmonitoring.metric.storage.MetricStorage
 import com.machrist.mpmonitoring.model.Project

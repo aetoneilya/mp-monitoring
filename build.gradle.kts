@@ -23,8 +23,6 @@ repositories {
 
 dependencies {
     implementation("io.swagger.core.v3:swagger-core:2.2.19")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-//    implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.jetbrains.kotlin.plugin.allopen:org.jetbrains.kotlin.plugin.allopen.gradle.plugin:1.9.23")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -34,17 +32,29 @@ dependencies {
     implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
     implementation("org.slf4j:slf4j-api:2.0.11")
     implementation("org.apache.commons:commons-math3:3.6.1")
-//    implementation("org.springframework.boot:spring-boot-starter-data-mongodb:3.2.3")
     implementation("org.postgresql:postgresql:42.7.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
     implementation("org.lz4:lz4-java:1.8.0")
 
     implementation("org.reactivestreams:reactive-streams:1.0.4")
-    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.0")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    testImplementation("io.projectreactor:reactor-test")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+    implementation("io.projectreactor:reactor-core:3.6.6")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0-RC")
+
+
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
+
+
+
 }
 
 allOpen {

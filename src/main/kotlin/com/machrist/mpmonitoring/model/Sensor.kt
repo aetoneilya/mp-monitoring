@@ -25,12 +25,12 @@ open class Sensor(
     @JoinColumn(name = "project_id")
     open var project: Project? = null,
     @NotNull
-    @Column(name = "storage_sensor_name", nullable = false, length = Integer.MAX_VALUE)
-    open var storageSensorName: String,
+    @Column(name = "sensor_name", nullable = false, length = Integer.MAX_VALUE)
+    open var sensorName: String,
     @OneToMany(mappedBy = "sensor", fetch = FetchType.EAGER)
     open var labels: MutableSet<Label> = mutableSetOf(),
 ) {
     fun buildLabelsMap() = labels.associateBy({ it.labelName }, { it.labelValue })
 
-    fun findName() = labels.find { it.labelName == "name" }?.labelValue ?: storageSensorName
+    fun findName() = labels.find { it.labelName == "name" }?.labelValue ?: sensorName
 }

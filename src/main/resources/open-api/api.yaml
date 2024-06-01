@@ -18,6 +18,7 @@ tags:
   - name: notification channels
   - name: alert notification channels
   - name: user project rights
+  - name: users
 
 servers:
   - url: localhost:8082
@@ -276,6 +277,88 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+
+  ## USERS ENDPOINTS
+  /auth/signup:
+    post:
+      summary: Register a new user
+      operationId: signUp
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: Unique login for the user
+                password:
+                  type: string
+                  description: Password for the user
+              required:
+                - login
+                - password
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authentication
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /auth/signin:
+    post:
+      summary: Authenticate user and generate JWT token
+      operationId: signIn
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: User's login
+                password:
+                  type: string
+                  description: User's password
+              required:
+                - login
+                - password
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authentication
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
 
   ## ALERTS ENDPOINT
   /projects/{projectId}/alerts:
@@ -862,6 +945,8 @@ paths:
                       payload:
                         description: arbitrary "additional data" the user can pass in
                         type: object
+                        additionalProperties:
+                          type: string
                 scopedVars:
                   type: object
                   example:

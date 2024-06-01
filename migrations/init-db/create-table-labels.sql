@@ -5,7 +5,8 @@ create table monitoring."labels"
     "id"          integer primary key default nextval('monitoring.labels_seq'),
     "sensor_id"   integer,
     "label_name"  varchar not null,
-    "label_value" varchar
+    "label_value" varchar,
+    unique (sensor_id, label_name, label_value)
 );
 
 ALTER TABLE monitoring."labels"
