@@ -2,17 +2,17 @@ server:
   port: 8082
 
 clickhouse:
-  host: ${CH_HOST}
-  port: ${CH_PORT}
-  database: ${CH_DATABASE}
-  username: ${CH_USERNAME}
-  password: ${CH_PASSWORD}
+  host: localhost
+  port: 8123
+  database: metrics
+  username: test
+  password: test
 
 spring:
   datasource:
-    url: ${PSQL_URL}
-    password: ${PSQL_PASSWORD}
-    username: ${PSQL_USERNAME}
+    url: jdbc:postgresql://localhost:5432/monitoring
+    password: test
+    username: test
 
   jpa:
     hibernate:
@@ -25,7 +25,11 @@ spring:
         hbm2ddl:
           auto: validate
 
-logging:
+
+  liquibase:
+    enabled: false
+
+
   level:
     org:
       springframework:
@@ -36,3 +40,9 @@ token:
     key: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
 
 
+
+springdoc:
+  api-docs:
+    version: openapi_3_1
+  swagger-ui:
+    use-root-path: true

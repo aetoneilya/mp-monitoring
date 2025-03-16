@@ -22,7 +22,6 @@ repositories {
 }
 
 dependencies {
-    implementation("io.swagger.core.v3:swagger-core:2.2.19")
     implementation("org.jetbrains.kotlin.plugin.allopen:org.jetbrains.kotlin.plugin.allopen.gradle.plugin:1.9.23")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -47,14 +46,24 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0-RC")
 
-
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("io.jsonwebtoken:jjwt-api:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
 
+    implementation("org.springdoc:springdoc-openapi-webflux-core:1.8.0")
+    implementation("org.springdoc:springdoc-openapi-webflux-ui:1.8.0")
+
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
 
 
+    testImplementation("org.testcontainers:testcontainers:1.19.8")
+    testImplementation("org.testcontainers:junit-jupiter:1.19.8")
+    testImplementation("org.testcontainers:postgresql:1.19.8")
+    testImplementation("org.testcontainers:clickhouse:1.19.8")
+    testImplementation("org.liquibase:liquibase-core:4.28.0")
+
+    implementation("com.clickhouse:clickhouse-jdbc:0.6.0")
 }
 
 allOpen {

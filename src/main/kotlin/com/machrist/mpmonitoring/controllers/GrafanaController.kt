@@ -2,7 +2,7 @@ package com.machrist.mpmonitoring.controllers
 
 import com.machrist.mpmonitoring.common.logger
 import com.machrist.mpmonitoring.domain.MetricService
-import com.machrist.mpmonitoring.metric.mp.MatrixProfileService
+import com.machrist.mpmonitoring.metric.mp.transformers.TimeSeriesTransformer
 import com.machrist.mpmonitoring.model.Label
 import com.machrist.mpmonitoring.model.Sensor
 import com.machrist.mpmonitoring.openapi.AdHocFiltersApi
@@ -25,18 +25,19 @@ import com.machrist.mpmonitoring.openapi.dto.DataframeFieldsInner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import org.springframework.http.ResponseEntity
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 
 @RestController
 class GrafanaController(
     private val metricService: MetricService,
-    private val matrixProfileService: MatrixProfileService,
+    transformers: List<TimeSeriesTransformer>,
 ) : GrafanaApi,
     AdHocFiltersApi,
     VariableApi {
     val log by logger()
+
+    private val nameToTransformer = transformers.associateBy { it.name }
 
     override fun apiEndpointsListMetricPayloadOptions(
         apiEndpointsListMetricPayloadOptionsRequest: ApiEndpointsListMetricPayloadOptionsRequest?,
@@ -72,7 +73,18 @@ class GrafanaController(
             metrics.map {
                 ApiEndpointsListMetrics200ResponseInner(
                     value = it.findName(),
-                    payloads = mapLabelsToGrafanaModel(it.labels, selected.filterNotNull()),
+                    payloads =
+                        mapLabelsToGrafanaModel(it.labels, selected.filterNotNull()) +
+                            listOf(
+                                ApiEndpointsListMetrics200ResponseInnerPayloadsInner(
+                                    name = "transform",
+                                    type = ApiEndpointsListMetrics200ResponseInnerPayloadsInner.Type.select,
+                                    options =
+                                        nameToTransformer.keys.map { key ->
+                                            ApiEndpointsListMetrics200ResponseInnerPayloadsInnerOptionsInner(key, key)
+                                        },
+                                ),
+                            ),
                 )
             }
         return ResponseEntity.ok(result.asFlow())
@@ -97,30 +109,34 @@ class GrafanaController(
         }
     }
 
-    @Transactional
     override fun apiEndpointsQuery(
         apiEndpointsQueryRequest: ApiEndpointsQueryRequest,
     ): ResponseEntity<Flow<ApiEndpointsQuery200ResponseInner>> {
         log.info("apiEndpointsQuery request=$apiEndpointsQueryRequest")
         val from = apiEndpointsQueryRequest.range?.from
         val to = apiEndpointsQueryRequest.range?.to
-        val targets = apiEndpointsQueryRequest.targets
+        val targets =
+            apiEndpointsQueryRequest.targets
+                ?.associateBy({ it.target }, { it.payload })
+                ?: emptyMap()
 
-        val sensor = metricService.findSensorsByName(targets?.first()!!.target)
+        val ts = metricService.getMetrics(targets, from, to)
 
-        val metrics = metricService.findMetrics(listOf(sensor), from, to)
+        val entry = ts.entries.first()
+
+        val mappedDataPoints =
+            entry.value.map { metric ->
+                listOf(
+                    BigDecimal(metric.value),
+                    BigDecimal(metric.dateTime.toInstant().toEpochMilli()),
+                )
+            }
 
         val result =
             listOf(
                 ApiEndpointsQuery200ResponseInner(
-                    target = targets.first().target,
-                    datapoints =
-                        metrics[sensor]?.timeSeriesPoints?.map { metric ->
-                            listOf(
-                                BigDecimal(metric.value),
-                                BigDecimal(metric.dateTime.toInstant().toEpochMilli()),
-                            )
-                        } ?: emptyList(),
+                    target = entry.key,
+                    datapoints = mappedDataPoints,
                 ),
             )
 

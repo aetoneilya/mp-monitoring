@@ -26,18 +26,19 @@ class MetricsController(
         getMetricsRequest: GetMetricsRequest,
     ): ResponseEntity<GetMetricsResponse> =
         with(getMetricsRequest) {
-            val sensors =
-                metricService.findSensorsByLabels(metadata) ?: return ResponseEntity.ok(
-                    GetMetricsResponse
-                        (emptyList()),
-                )
+            val metadata = getMetricsRequest.metadata
 
-            val timeSeriesBySensor = metricService.findMetrics(sensors, toOffsetDateTime(from), toOffsetDateTime(to))
+            val timeSeriesBySensor =
+                metricService.getMetrics(
+                    mapOf(metadata["name"]!! to metadata),
+                    toOffsetDateTime(from),
+                    toOffsetDateTime(to),
+                )
 
             val metricsDto =
                 timeSeriesBySensor.map { (sensor, timeSeries) ->
                     MetricDto(
-                        sensor.buildLabelsMap(),
+                        metadata,
                         timeSeries.toDto(),
                     )
                 }

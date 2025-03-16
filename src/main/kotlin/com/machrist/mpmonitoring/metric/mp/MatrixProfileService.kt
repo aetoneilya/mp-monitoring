@@ -9,17 +9,17 @@ import org.springframework.stereotype.Service
 class MatrixProfileService {
     fun stomp(timeSeries: TimeSeries): TimeSeries {
         val stomp = Stomp(48, 10320)
-        timeSeries.timeSeriesPoints.asSequence()
+        timeSeries.asSequence()
             .map { it.value }
             .forEach(stomp::update)
 
         val mp = stomp.get()?.profile
         return TimeSeries(
-            timeSeries.timeSeriesPoints
+            timeSeries
                 .mapIndexed { index, timeSeriesDataPoint ->
                     TimeSeriesDataPoint(
                         dateTime = timeSeriesDataPoint.dateTime,
-                        value = mp?.getOrNull(index) ?: 0.0
+                        value = mp?.getOrNull(index) ?: 0.0,
                     )
                 },
         )

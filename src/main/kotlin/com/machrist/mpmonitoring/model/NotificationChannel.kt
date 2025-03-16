@@ -36,7 +36,7 @@ open class NotificationChannel(
     @NotNull
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "address", nullable = false)
-    open var address: MutableMap<String, Any>? = null,
+    open var address: MutableMap<String, String> = mutableMapOf(),
     @ManyToMany
     @JoinTable(
         schema = "monitoring",

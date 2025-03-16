@@ -6,7 +6,7 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 class StandardDeviationTransformer : TimeSeriesTransformer {
-    override val name: String = "Rolling Statistics"
+    override val name: String = "standard-deviation"
 
     override fun transform(
         timeSeries: TimeSeries,

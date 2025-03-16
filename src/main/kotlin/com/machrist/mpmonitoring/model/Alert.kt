@@ -31,18 +31,18 @@ open class Alert(
     open var id: Int? = null,
     @NotNull
     @Column(name = "name", nullable = false, length = Integer.MAX_VALUE)
-    open var name: String?,
+    open var name: String,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     open var project: Project?,
     @NotNull
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "rule", nullable = false)
-    open var rule: MutableMap<String, String>?,
+    open var rule: Map<String, String>,
     @Column(name = "calculation_interval", columnDefinition = "interval")
-    open var calculationInterval: Duration?,
+    open var calculationInterval: Duration,
     @Column(name = "last_calculation")
-    open var lastCalculation: Instant?,
+    open var lastCalculation: Instant,
     @ManyToMany
     @JoinTable(
         name = "alerts_notification_channels",

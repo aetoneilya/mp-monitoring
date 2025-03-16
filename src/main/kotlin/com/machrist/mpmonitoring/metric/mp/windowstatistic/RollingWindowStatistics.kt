@@ -127,7 +127,7 @@ class RollingWindowStatistics : DoubleFunction<WindowStatistic> {
     fun dataSize(): Int = getStatsBuffer().getLength()
 
     companion object {
-        public fun of(
+        fun of(
             x: Array<Double>,
             windowSize: Int,
         ): RollingWindowStatistics {
@@ -138,7 +138,7 @@ class RollingWindowStatistics : DoubleFunction<WindowStatistic> {
             return stats
         }
 
-        public fun of(
+        fun of(
             x: DoubleArray,
             windowSize: Int,
         ): RollingWindowStatistics {

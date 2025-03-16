@@ -27,7 +27,7 @@ fun List<TimeSeriesDataPointDto>?.toEntity() =
     )
 
 fun TimeSeries.toDto(): List<TimeSeriesDataPointDto> {
-    return this.timeSeriesPoints.map {
+    return this.map {
         TimeSeriesDataPointDto(
             it.dateTime.toInstant().epochSecond,
             it.value.toBigDecimal(),

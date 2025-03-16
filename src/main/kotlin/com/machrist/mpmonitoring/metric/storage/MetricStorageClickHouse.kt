@@ -83,9 +83,7 @@ class MetricStorageClickHouse(
         sensorName: String,
         timeSeries: TimeSeries,
     ) {
-        val columns =
-            ClickHouseColumn.parse("`time` DateTime CODEC(Delta(4), ZSTD(1)), `value` Double")
-
+        val columns = ClickHouseColumn.parse("`time` DateTime CODEC(Delta(4), ZSTD(1)), `value` Double")
         log.info("store metrics to $projectName.$sensorName")
 
         ClickHouseClient.newInstance(ClickHouseProtocol.HTTP).use { client ->
@@ -104,19 +102,12 @@ class MetricStorageClickHouse(
                     future = request.data(stream.inputStream).execute()
 
                     val processor =
-                        ClickHouseDataStreamFactory
-                            .getInstance()
-                            .getProcessor(
-                                config,
-                                null,
-                                stream,
-                                null,
-                                columns,
-                            )
+                        ClickHouseDataStreamFactory.getInstance()
+                            .getProcessor(config, null, stream, null, columns)
 
                     val values = columns.map { it.newValue(config) }
                     val serializers = processor.getSerializers(config, columns)
-                    for (datapoint in timeSeries.timeSeriesPoints) {
+                    for (datapoint in timeSeries) {
                         serializers[0].serialize(values[0].update(datapoint.dateTime), stream)
                         serializers[1].serialize(values[1].update(datapoint.value), stream)
                     }

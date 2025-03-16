@@ -40,8 +40,8 @@ class SecurityConfiguration(
             .authorizeExchange { exchange ->
                 exchange
                     .pathMatchers("/auth/**").permitAll()
-                    .pathMatchers("/swagger-ui/", "/swagger-resources/*", "/v3/api-docs/").permitAll()
-                    .anyExchange().authenticated()
+                    .pathMatchers("/webjars/**","/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/").permitAll()
+                    .anyExchange().permitAll()
             }
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .authenticationManager(jwtAuthenticationManager)
